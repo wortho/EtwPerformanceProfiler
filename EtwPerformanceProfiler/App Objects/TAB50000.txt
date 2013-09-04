@@ -1,0 +1,51 @@
+//--------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY
+// OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT
+// LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+// FITNESS FOR A PARTICULAR PURPOSE.
+//--------------------------------------------------------------------------
+
+OBJECT Table 50000 Performance Profiler Events
+{
+  OBJECT-PROPERTIES
+  {
+    Date=;
+    Time=;
+    Version List=Performance Profiler;
+  }
+  PROPERTIES
+  {
+    DataPerCompany=No;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Id                  ;Integer        }
+    { 2   ;   ;Session ID          ;Integer        }
+    { 3   ;   ;Indentation         ;Integer        }
+    { 4   ;   ;Object Type         ;Option        ;CaptionML=ENU=Object Type;
+                                                   OptionCaptionML=ENU=TableData,Table,Form,Report,Dataport,Codeunit,XMLport,MenuSuite,Page,Query,System,FieldNumber;
+                                                   OptionString=TableData,Table,Form,Report,Dataport,Codeunit,XMLport,MenuSuite,Page,Query,System,FieldNumber }
+    { 5   ;   ;Object ID           ;Integer       ;TableRelation=Object.ID WHERE (Type=FIELD(Object Type));
+                                                   TestTableRelation=No;
+                                                   CaptionML=ENU=Object ID }
+    { 6   ;   ;Line No             ;Integer        }
+    { 7   ;   ;Statement           ;Text250        }
+    { 8   ;   ;Duration            ;Decimal        }
+	{ 9   ;   ;HitCount            ;Integer        }
+  }
+  KEYS
+  {
+    {    ;Id,Session ID                           ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    END.
+  }
+}
+

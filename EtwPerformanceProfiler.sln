@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EtwPerformanceProfiler", "EtwPerformanceProfiler\EtwPerformanceProfiler.csproj", "{614F624C-9661-4DA0-AE77-ADF69551B310}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EtwPerformanceProfilerTest", "EtwPerformanceProfilerTest\EtwPerformanceProfilerTest.csproj", "{E5E9FB62-1AB5-4B18-816D-C7AF81AC0476}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{614F624C-9661-4DA0-AE77-ADF69551B310}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{614F624C-9661-4DA0-AE77-ADF69551B310}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{614F624C-9661-4DA0-AE77-ADF69551B310}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{614F624C-9661-4DA0-AE77-ADF69551B310}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E5E9FB62-1AB5-4B18-816D-C7AF81AC0476}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5E9FB62-1AB5-4B18-816D-C7AF81AC0476}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5E9FB62-1AB5-4B18-816D-C7AF81AC0476}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5E9FB62-1AB5-4B18-816D-C7AF81AC0476}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

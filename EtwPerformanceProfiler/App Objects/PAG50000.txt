@@ -1,0 +1,182 @@
+//--------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY
+// OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT
+// LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+// FITNESS FOR A PARTICULAR PURPOSE.
+//--------------------------------------------------------------------------
+
+OBJECT Page 50000 Performance Profiler
+{
+  OBJECT-PROPERTIES
+  {
+    Date=09/02/13;
+    Time=[ 3:38:12 PM];
+    Modified=Yes;
+    Version List=Performance Profiler;
+  }
+  PROPERTIES
+  {
+    Permissions=;
+    Editable=No;
+    InsertAllowed=No;
+    DeleteAllowed=No;
+    ModifyAllowed=No;
+    SourceTable=Table50000;
+    PageType=List;
+    OnOpenPage=BEGIN
+                 // Assume that profiler hasn't been started.
+                 // This assumption might be wrong.
+                 ProfilerStarted := FALSE;
+
+                 Rec.SETFILTER("Session ID", '=%1', SESSIONID);
+
+                 PerformaceProfiler := PerformaceProfiler.EtwPerformanceProfiler();
+               END;
+
+    OnAfterGetRecord=VAR
+                       LinesHit@1003 : Integer;
+                     BEGIN
+                     END;
+
+    ActionList=ACTIONS
+    {
+      { 15      ;    ;ActionContainer;
+                      Name=Code Coverage Actions;
+                      ActionContainerType=ActionItems }
+      { 14      ;1   ;Action    ;
+                      Name=Start;
+                      Promoted=Yes;
+                      Enabled=NOT ProfilerStarted;
+                      PromotedIsBig=Yes;
+                      Image=Start;
+                      PromotedCategory=Process;
+                      OnAction=VAR
+                                 ProfilerRecord@1000 : Record 50000;
+                                 i@1001 : Integer;
+                               BEGIN
+                                 ProfilerRecord.SETFILTER("Session ID", '=%1', SESSIONID);
+                                 ProfilerRecord.DELETEALL;
+
+                                 PerformaceProfiler.Start(SESSIONID, 10);
+
+                                 SLEEP(5000);
+
+                                 ProfilerStarted := TRUE;
+                               END;
+                                }
+      { 3       ;1   ;Action    ;
+                      Name=Stop;
+                      Promoted=Yes;
+                      Enabled=ProfilerStarted;
+                      PromotedIsBig=Yes;
+                      Image=Stop;
+                      PromotedCategory=Process;
+                      OnAction=VAR
+                                 ProfilerRecord@1000 : Record 50000;
+                               BEGIN
+                                 SLEEP(1000);
+
+                                 PerformaceProfiler.Stop;
+
+                                 ProfilerStarted := FALSE;
+
+                                 ProfilerRecord.INIT;
+
+                                 i := 0;
+
+                                 WHILE (PerformaceProfiler.CallTreeMoveNext) DO BEGIN
+                                   i += 1;
+                                   ProfilerRecord.Id := i;
+                                   ProfilerRecord."Session ID" := SESSIONID;
+                                   ProfilerRecord.Indentation := PerformaceProfiler.CallTreeCurrentStatementIndentation;
+                                   ProfilerRecord."Object Type" := PerformaceProfiler.CallTreeCurrentStatementOwningObjectType;
+                                   ProfilerRecord."Object ID" := PerformaceProfiler.CallTreeCurrentStatementOwningObjectId;
+                                   ProfilerRecord."Line No" := PerformaceProfiler.CallTreeCurrentStatementLineNo;
+                                   ProfilerRecord.Statement := PerformaceProfiler.CallTreeCurrentStatement;
+                                   ProfilerRecord.Duration := PerformaceProfiler.CallTreeCurrentStatementDurationMs;
+								   ProfilerRecord.HitCount := PerformaceProfiler.CallTreeCurrentStatementHitCount;
+                                   ProfilerRecord.INSERT;
+                                 END;
+                               END;
+                                }
+      { 10      ;1   ;Action    ;
+                      Name=Clear Codeunit 1 calls;
+                      Promoted=Yes;
+                      PromotedIsBig=Yes;
+                      Image=ClearFilter;
+                      PromotedCategory=Process;
+                      OnAction=VAR
+                                 codeUnit1Call@1000 : Boolean;
+                               BEGIN
+                                 codeUnit1Call := FALSE;
+
+                                 FINDFIRST;
+
+                                 REPEAT
+
+                                   IF (Indentation = 0) THEN BEGIN
+                                     IF (("Object Type" = "Object Type"::Codeunit) AND ("Object ID" = 1)) THEN
+                                       codeUnit1Call := TRUE
+                                     ELSE
+                                       codeUnit1Call := FALSE;
+                                   END;
+
+                                   IF (codeUnit1Call) THEN
+                                    DELETE;
+
+                                 UNTIL NEXT = 0;
+                               END;
+                                }
+    }
+  }
+  CONTROLS
+  {
+    { 1   ;0   ;Container ;
+                ContainerType=ContentArea }
+
+    { 2   ;1   ;Group     ;
+                Name=Call Tree;
+                IndentationColumnName=Indentation;
+                ShowAsTree=Yes;
+                GroupType=Repeater }
+
+    { 7   ;2   ;Field     ;
+                SourceExpr="Object Type" }
+
+    { 4   ;2   ;Field     ;
+                SourceExpr="Object ID" }
+
+    { 11  ;2   ;Field     ;
+                SourceExpr="Line No" }
+
+    { 5   ;2   ;Field     ;
+                SourceExpr=Statement }
+
+    { 9   ;2   ;Field     ;
+                SourceExpr=Duration;
+                Style=Attention }
+
+    { 13   ;2   ;Field     ;
+                SourceExpr=HitCount}
+
+    { 6   ;2   ;Field     ;
+                SourceExpr=Id }
+
+    { 8   ;2   ;Field     ;
+                SourceExpr="Session ID" }
+
+  }
+  CODE
+  {
+    VAR
+      ProfilerStarted@1001 : Boolean INDATASET;
+      PerformaceProfiler@1000 : DotNet "'EtwPerformanceProfiler, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.EtwPerformanceProfiler.EtwPerformanceProfiler";
+      i@1002 : Integer;
+      r@1004 : Record 37;
+
+    BEGIN
+    END.
+  }
+}
+
