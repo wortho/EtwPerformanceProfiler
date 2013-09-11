@@ -276,7 +276,7 @@ namespace EtwPerformanceProfiler
 
             if (buildAggregatedCallTree)
             {
-                this.aggregatedCallTree = this.BuildAggregatedCallTree();
+                this.aggregatedCallTree = this.BuildAggregatedCallTree(this.profilerEventList);
 
                 if (this.aggregatedCallTree != null)
                 {
@@ -361,15 +361,16 @@ namespace EtwPerformanceProfiler
         /// <summary>
         /// Builds the accumulated result of processing the stored ETW events
         /// </summary>
+        /// <param name="profilerEvents">The list of profiler events.</param>
         /// <returns>An instance of an AggregatedEventNode tree.</returns>
-        private AggregatedEventNode BuildAggregatedCallTree()
+        internal AggregatedEventNode BuildAggregatedCallTree(IList<ProfilerEvent> profilerEvents)
         {
             this.aggregatedCallTree = new AggregatedEventNode();
             AggregatedEventNode currentAggregatedEventNode = this.aggregatedCallTree;
 
-            for (int i = 0; i < this.profilerEventList.Count; i++)
+            for (int i = 0; i < profilerEvents.Count; i++)
             {
-                ProfilerEvent currentProfilerEvent = this.profilerEventList[i];
+                ProfilerEvent currentProfilerEvent = profilerEvents[i];
 
                 if (currentProfilerEvent.Type == EventType.Statement)
                 {
@@ -412,8 +413,8 @@ namespace EtwPerformanceProfiler
                     // We should never pop root event. This can happen if we miss some events in the begining.
                     if (currentAggregatedEventNode.Parent != null && 
                         (currentProfilerEvent.IsSqlEvent ||
-                        i == this.profilerEventList.Count - 1 || // current event is the last one
-                        this.profilerEventList[i + 1].Type != EventType.StartMethod || // next event is not the start 
+                        i == profilerEvents.Count - 1 || // current event is the last one
+                        profilerEvents[i + 1].Type != EventType.StartMethod || // next event is not the start 
                         currentAggregatedEventNode.OriginalType == EventType.StartMethod)) // current eggregated event is start so we need to pop it
                     {
                         currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(currentProfilerEvent.TimeStamp100ns);
