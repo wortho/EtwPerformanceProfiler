@@ -188,7 +188,6 @@ namespace EtwPerformanceProfiler
         {
             return this.callTree.MoveNext();
         }
-
             
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
@@ -209,7 +208,7 @@ namespace EtwPerformanceProfiler
             {
                 if (this.profilerEventProcessor != null)
                 {
-                    profilerEventProcessor.Dispose();
+                    this.profilerEventProcessor.Dispose();
                 }
 
                 this.callTree = null;
