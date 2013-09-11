@@ -10,9 +10,8 @@ OBJECT Page 50000 Performance Profiler
 {
   OBJECT-PROPERTIES
   {
-    Date=09/02/13;
-    Time=[ 3:38:12 PM];
-    Modified=Yes;
+    Date=;
+    Time=;
     Version List=Performance Profiler;
   }
   PROPERTIES
@@ -58,9 +57,7 @@ OBJECT Page 50000 Performance Profiler
                                  ProfilerRecord.SETFILTER("Session ID", '=%1', SESSIONID);
                                  ProfilerRecord.DELETEALL;
 
-                                 PerformaceProfiler.Start(SESSIONID, 10);
-
-                                 SLEEP(5000);
+                                 PerformaceProfiler.Start(SESSIONID, 1);
 
                                  ProfilerStarted := TRUE;
                                END;
@@ -75,7 +72,6 @@ OBJECT Page 50000 Performance Profiler
                       OnAction=VAR
                                  ProfilerRecord@1000 : Record 50000;
                                BEGIN
-                                 SLEEP(1000);
 
                                  PerformaceProfiler.Stop;
 
@@ -95,7 +91,7 @@ OBJECT Page 50000 Performance Profiler
                                    ProfilerRecord."Line No" := PerformaceProfiler.CallTreeCurrentStatementLineNo;
                                    ProfilerRecord.Statement := PerformaceProfiler.CallTreeCurrentStatement;
                                    ProfilerRecord.Duration := PerformaceProfiler.CallTreeCurrentStatementDurationMs;
-								   ProfilerRecord.HitCount := PerformaceProfiler.CallTreeCurrentStatementHitCount;
+                                   ProfilerRecord.HitCount := PerformaceProfiler.CallTreeCurrentStatementHitCount;
                                    ProfilerRecord.INSERT;
                                  END;
                                END;

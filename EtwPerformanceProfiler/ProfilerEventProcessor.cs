@@ -9,7 +9,6 @@
 namespace EtwPerformanceProfiler
 {
     using System;
-    using System.Linq;
     using System.Collections.Generic;
     using Diagnostics.Tracing;
     using ETWPerformanceProfiler;
@@ -338,12 +337,19 @@ namespace EtwPerformanceProfiler
         /// <returns>reduces the tree by removing all nodes that are below the threshold call tree.</returns>
         private void ReduceTree(AggregatedEventNode rootNode)
         {
-            foreach (AggregatedEventNode node in rootNode.Children.ToArray())
+            if (this.threshold <= 0)
             {
-                if ((node.Duration100ns / 10000) < this.threshold)
+                return;
+            }
+
+            for (int index = 0; index < rootNode.Children.Count; index++)
+            {
+                AggregatedEventNode node = rootNode.Children[index];
+                if ((node.Duration100ns/10000) < this.threshold)
                 {
                     node.Children.Clear();
-                    node.Parent.Children.Remove(node);
+                    rootNode.Children.Remove(node);
+                    index--;
                 }
                 else
                 {
@@ -370,7 +376,7 @@ namespace EtwPerformanceProfiler
                     // If there are two consequent statements then first we need to calculate the duration for the previous
                     // one and pop it from the statement call stack. 
                     // Then we push the current statement event into the stack
-                    if (currentAggregatedEventNode.Parent != null && currentAggregatedEventNode.Type == EventType.Statement)
+                    if (currentAggregatedEventNode.Parent != null && currentAggregatedEventNode.EvaluatedType == EventType.Statement)
                     {
                         currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(currentProfilerEvent.TimeStamp100ns);
                     }
@@ -380,15 +386,15 @@ namespace EtwPerformanceProfiler
                     continue;
                 }
 
-                // If it is the root method or if it is SQL event we also push start event into the stack.
                 if (currentProfilerEvent.Type == EventType.StartMethod)
                 {
+                    // If it is the root method or if it is SQL event we also push start event into the stack.
                     if (currentAggregatedEventNode.Parent == null || currentProfilerEvent.IsSqlEvent)
                     {
                         currentAggregatedEventNode = currentAggregatedEventNode.PushEventIntoCallStack(currentProfilerEvent);
                     }
 
-                    currentAggregatedEventNode.Type = EventType.StartMethod;
+                    currentAggregatedEventNode.EvaluatedType = EventType.StartMethod;
 
                     continue;
                 }
@@ -398,14 +404,17 @@ namespace EtwPerformanceProfiler
                 {
                     // First need to calculate the duration for the previous statement
                     // and pop it from the statement call stack. 
-                    if (currentAggregatedEventNode.Parent != null && currentAggregatedEventNode.Type == EventType.Statement)
+                    if (currentAggregatedEventNode.Parent != null && currentAggregatedEventNode.EvaluatedType == EventType.Statement)
                     {
                         currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(currentProfilerEvent.TimeStamp100ns);
                     }
 
-                    // We should never pop root event.
-                    // If the event does not match, do nothing. This can happen if we miss some events in the begining.
-                    if (currentAggregatedEventNode.Parent != null)
+                    // We should never pop root event. This can happen if we miss some events in the begining.
+                    if (currentAggregatedEventNode.Parent != null && 
+                        (currentProfilerEvent.IsSqlEvent ||
+                        i == this.profilerEventList.Count - 1 || // current event is the last one
+                        this.profilerEventList[i + 1].Type != EventType.StartMethod || // next event is not the start 
+                        currentAggregatedEventNode.OriginalType == EventType.StartMethod)) // current eggregated event is start so we need to pop it
                     {
                         currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(currentProfilerEvent.TimeStamp100ns);
                     }

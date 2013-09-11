@@ -62,9 +62,15 @@ namespace EtwPerformanceProfiler
         internal AggregatedEventNode Parent { get; private set; }
 
         /// <summary>
-        /// Gets or sets the type.
+        /// Gets or sets the original type of the node.
         /// </summary>
-        internal EventType Type { get; set; }
+        internal EventType OriginalType { get; private set; }
+
+        /// <summary>
+        /// Gets or sets the evaluated type. The statement type can change to a start type 
+        /// during aggregation if the statement is a function call.
+        /// </summary>
+        internal EventType EvaluatedType { get; set; }
 
         /// <summary>
         /// Depth of the current element in the tree.
@@ -111,7 +117,8 @@ namespace EtwPerformanceProfiler
                     LineNo = profilerEvent.LineNo,
                     StatementName = profilerEvent.StatementName,
                     StartTimeStamp100ns = profilerEvent.TimeStamp100ns,
-                    Type = profilerEvent.Type
+                    OriginalType = profilerEvent.Type,
+                    EvaluatedType = profilerEvent.Type
                 };
 
             this.Children.Add(res);
