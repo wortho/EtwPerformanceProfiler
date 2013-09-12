@@ -412,10 +412,11 @@ namespace EtwPerformanceProfiler
 
                     // We should never pop root event. This can happen if we miss some events in the begining.
                     if (currentAggregatedEventNode.Parent != null && 
-                        (currentProfilerEvent.IsSqlEvent ||
-                        i == profilerEvents.Count - 1 || // current event is the last one
-                        profilerEvents[i + 1].Type != EventType.StartMethod || // next event is not the start 
-                        currentAggregatedEventNode.OriginalType == EventType.StartMethod)) // current eggregated event is start so we need to pop it
+                        (currentProfilerEvent.IsSqlEvent || // Always close sql events.
+                        i == profilerEvents.Count - 1 || // Current event is the last one.
+                        profilerEvents[i + 1].IsSqlEvent || // The next event is sql. It should be start event.
+                        profilerEvents[i + 1].Type != EventType.StartMethod || // Next event is not the start.
+                        currentAggregatedEventNode.OriginalType == EventType.StartMethod)) // Current eggregated event is start so we need to pop it.
                     {
                         currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(currentProfilerEvent.TimeStamp100ns);
                     }

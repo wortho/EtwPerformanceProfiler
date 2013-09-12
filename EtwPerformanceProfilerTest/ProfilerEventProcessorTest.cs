@@ -9,6 +9,78 @@ namespace EtwPerformanceProfilerTest
     {
         /// <summary>
         /// 
+        /// foo();
+        /// SQL QUERY
+        /// 
+        /// foo()
+        ///     var1 += 1;
+        /// </summary>
+        [TestMethod]
+        public void BuildAggregatedCallTreeSqlAfterFunctionTest()
+        {
+            List<ProfilerEvent> profilerEventList = new List<ProfilerEvent>
+                {        
+                    new ProfilerEvent
+                    {
+                        ObjectId = 1,
+                        Type = EventType.Statement,
+                        StatementName = "foo"
+                    }, // 0
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 1,
+                        Type = EventType.StartMethod,
+                        StatementName = "foo"
+                    }, // 1
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 1,
+                        Type = EventType.Statement,
+                        StatementName = "var1 += 1"
+                    }, // 2
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 1,
+                        Type = EventType.StopMethod,
+                        StatementName = "foo"
+                    }, // 3
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 0,
+                        Type = EventType.StartMethod,
+                        StatementName = "SQL"
+                    }, // 4
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 9,
+                        Type = EventType.StopMethod,
+                        StatementName = "SQL"
+                    }, // 5
+                };
+
+            var profilerEventProcessor = new ProfilerEventProcessor(0);
+
+            AggregatedEventNode aggregatedCallTree = profilerEventProcessor.BuildAggregatedCallTree(profilerEventList);
+
+            AggregatedEventNode expected = new AggregatedEventNode();
+            AggregatedEventNode currentNode = expected;
+
+            currentNode = currentNode.PushEventIntoCallStack(profilerEventList[0]); // +foo
+            currentNode = currentNode.PushEventIntoCallStack(profilerEventList[2]); // +var1 += 1
+            currentNode = currentNode.PopEventFromCallStackAndCalculateDuration(0); // -var1 += 1
+            currentNode = currentNode.PopEventFromCallStackAndCalculateDuration(0); // -foo
+            currentNode = currentNode.PushEventIntoCallStack(profilerEventList[4]); // +SQL
+            currentNode.PopEventFromCallStackAndCalculateDuration(0); // -SQL
+
+            AssertAggregatedEventNode(expected, aggregatedCallTree);
+        }
+        /// <summary>
+        /// 
         /// FOR i:= 1 TO 3 DO
         ///     foo();
         /// 
