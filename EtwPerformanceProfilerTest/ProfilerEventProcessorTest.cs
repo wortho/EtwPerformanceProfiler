@@ -514,5 +514,22 @@ namespace EtwPerformanceProfilerTest
                 AssertAggregatedEventNode(expected.Children[i], aggregatedCallTree.Children[i]);
             }
         }
+
+        [TestMethod]
+        public void GetStatementFromTheCacheTest()
+        {
+            var profilerEventProcessor = new ProfilerEventProcessor(0);
+
+            const string Statement = "statement";
+            profilerEventProcessor.GetStatementFromTheCache(Statement);
+
+            for (int i = 0; i < 10; ++i)
+            {
+                string newStatement = new string(new [] {'s', 't', 'a', 't', 'e', 'm', 'e', 'n', 't'});
+                string cahcedStatement = profilerEventProcessor.GetStatementFromTheCache(newStatement);
+
+                Assert.IsTrue(object.ReferenceEquals(Statement, cahcedStatement));
+            }
+        }
     }
 }

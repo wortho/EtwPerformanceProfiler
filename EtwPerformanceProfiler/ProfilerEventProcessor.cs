@@ -225,6 +225,14 @@ namespace EtwPerformanceProfiler
         /// The cumulated aggregated call tree
         /// </summary>
         private AggregatedEventNode aggregatedCallTree;
+
+        /// <summary>
+        /// The key is the string and the value is exactly the same string.
+        /// The idea is that for the equal strings we will use exactly the same string object.
+        /// It saves memory because event list contains a lot of identical strings. 
+        /// </summary>
+        private readonly Dictionary<string, string> statementCache;
+
         #endregion
 
         /// <summary>
@@ -241,6 +249,8 @@ namespace EtwPerformanceProfiler
             this.profilerEventList = new List<ProfilerEvent>();
 
             this.aggregatedCallTree = null;
+
+            this.statementCache = new Dictionary<string, string>();
 
             this.etwEventProcessor = new EtwEventProcessor(ProviderName, traceEvent => this.EtwEventHandler(traceEvent, this.profilerEventList));
         }
@@ -427,6 +437,26 @@ namespace EtwPerformanceProfiler
         }
 
         /// <summary>
+        /// For the equal strings function returns exactly the same string object with the value equal to the parameter.
+        /// It saves memory because event list contains a lot of identical strings. 
+        /// </summary>
+        /// <param name="statement">The key value.</param>
+        /// <returns>The cached string value.</returns>
+        internal string GetStatementFromTheCache(string statement)
+        {
+            string cachedStatement;
+
+            if (this.statementCache.TryGetValue(statement, out cachedStatement))
+            {
+                return cachedStatement;
+            }
+
+            this.statementCache[statement] = statement;
+
+            return statement;
+        } 
+
+        /// <summary>
         /// The callback which is called every time new event appears.
         /// </summary>
         /// <param name="traceEvent">The trace event.</param>
@@ -503,17 +533,21 @@ namespace EtwPerformanceProfiler
                 lineNo = (int)traceEvent.PayloadValue(LineNoPayloadIndex);
             }
 
+            string statement = (string)traceEvent.PayloadValue(statementLoadIndex);
+
+            statement = this.GetStatementFromTheCache(statement);
+
             ProfilerEvent profilerEvent = new ProfilerEvent
                 {
                     Type = type,
                     ObjectType = objectType,
                     ObjectId = objectId,
                     LineNo = lineNo,
-                    StatementName = (string)traceEvent.PayloadValue(statementLoadIndex),
+                    StatementName = statement,
                     TimeStamp100ns = traceEvent.TimeStamp100ns
                 };
 
             traceEventlist.Add(profilerEvent);
-        }       
+        }      
     }
 }
