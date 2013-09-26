@@ -1,36 +1,27 @@
-//--------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation.  All rights reserved.
-// THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY
-// OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT
-// LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-// FITNESS FOR A PARTICULAR PURPOSE.
-//--------------------------------------------------------------------------
-
 OBJECT Page 50000 Performance Profiler
 {
   OBJECT-PROPERTIES
   {
-    Date=;
-    Time=;
     Version List=Performance Profiler;
   }
   PROPERTIES
   {
     Permissions=;
-    Editable=No;
     InsertAllowed=No;
     DeleteAllowed=No;
-    ModifyAllowed=No;
+    ModifyAllowed=Yes;
     SourceTable=Table50000;
     PageType=List;
+    OnInit=BEGIN
+             TargetSessionID := SESSIONID;
+           END;
+
     OnOpenPage=BEGIN
                  // Assume that profiler hasn't been started.
                  // This assumption might be wrong.
                  ProfilerStarted := FALSE;
-
-                 Rec.SETFILTER("Session ID", '=%1', SESSIONID);
-
-                 PerformaceProfiler := PerformaceProfiler.EtwPerformanceProfiler();
+                 Rec.SETFILTER("Session ID", '=%1', TargetSessionID);
+                 PerformanceProfiler := PerformanceProfiler.EtwPerformanceProfiler();
                END;
 
     OnAfterGetRecord=VAR
@@ -54,10 +45,10 @@ OBJECT Page 50000 Performance Profiler
                                  ProfilerRecord@1000 : Record 50000;
                                  i@1001 : Integer;
                                BEGIN
-                                 ProfilerRecord.SETFILTER("Session ID", '=%1', SESSIONID);
+                                 ProfilerRecord.SETFILTER("Session ID", '=%1', TargetSessionID);
                                  ProfilerRecord.DELETEALL;
 
-                                 PerformaceProfiler.Start(SESSIONID, 1);
+                                 PerformanceProfiler.Start(TargetSessionID, 1);
 
                                  ProfilerStarted := TRUE;
                                END;
@@ -73,7 +64,7 @@ OBJECT Page 50000 Performance Profiler
                                  ProfilerRecord@1000 : Record 50000;
                                BEGIN
 
-                                 PerformaceProfiler.Stop;
+                                 PerformanceProfiler.Stop;
 
                                  ProfilerStarted := FALSE;
 
@@ -81,17 +72,17 @@ OBJECT Page 50000 Performance Profiler
 
                                  i := 0;
 
-                                 WHILE (PerformaceProfiler.CallTreeMoveNext) DO BEGIN
+                                 WHILE (PerformanceProfiler.CallTreeMoveNext) DO BEGIN
                                    i += 1;
                                    ProfilerRecord.Id := i;
-                                   ProfilerRecord."Session ID" := SESSIONID;
-                                   ProfilerRecord.Indentation := PerformaceProfiler.CallTreeCurrentStatementIndentation;
-                                   ProfilerRecord."Object Type" := PerformaceProfiler.CallTreeCurrentStatementOwningObjectType;
-                                   ProfilerRecord."Object ID" := PerformaceProfiler.CallTreeCurrentStatementOwningObjectId;
-                                   ProfilerRecord."Line No" := PerformaceProfiler.CallTreeCurrentStatementLineNo;
-                                   ProfilerRecord.Statement := PerformaceProfiler.CallTreeCurrentStatement;
-                                   ProfilerRecord.Duration := PerformaceProfiler.CallTreeCurrentStatementDurationMs;
-                                   ProfilerRecord.HitCount := PerformaceProfiler.CallTreeCurrentStatementHitCount;
+                                   ProfilerRecord."Session ID" := TargetSessionID;
+                                   ProfilerRecord.Indentation := PerformanceProfiler.CallTreeCurrentStatementIndentation;
+                                   ProfilerRecord."Object Type" := PerformanceProfiler.CallTreeCurrentStatementOwningObjectType;
+                                   ProfilerRecord."Object ID" := PerformanceProfiler.CallTreeCurrentStatementOwningObjectId;
+                                   ProfilerRecord."Line No" := PerformanceProfiler.CallTreeCurrentStatementLineNo;
+                                   ProfilerRecord.Statement := PerformanceProfiler.CallTreeCurrentStatement;
+                                   ProfilerRecord.Duration := PerformanceProfiler.CallTreeCurrentStatementDurationMs;
+                                   ProfilerRecord.HitCount := PerformanceProfiler.CallTreeCurrentStatementHitCount;
                                    ProfilerRecord.INSERT;
                                  END;
                                END;
@@ -131,8 +122,23 @@ OBJECT Page 50000 Performance Profiler
     { 1   ;0   ;Container ;
                 ContainerType=ContentArea }
 
+    { 16  ;1   ;Group     ;
+                CaptionML=ENU=Configuration;
+                GroupType=Group }
+
+    { 12  ;2   ;Field     ;
+                Name=Target Session ID;
+                Lookup=Yes;
+                SourceExpr=TargetSessionID;
+                TableRelation="Active Session"."Session ID";
+                OnValidate=BEGIN
+                             Rec.SETFILTER("Session ID", '=%1', TargetSessionID);
+                           END;
+                            }
+
     { 2   ;1   ;Group     ;
                 Name=Call Tree;
+                Editable=FALSE;
                 IndentationColumnName=Indentation;
                 ShowAsTree=Yes;
                 GroupType=Repeater }
@@ -153,8 +159,8 @@ OBJECT Page 50000 Performance Profiler
                 SourceExpr=Duration;
                 Style=Attention }
 
-    { 13   ;2   ;Field     ;
-                SourceExpr=HitCount}
+    { 13  ;2   ;Field     ;
+                SourceExpr=HitCount }
 
     { 6   ;2   ;Field     ;
                 SourceExpr=Id }
@@ -167,9 +173,9 @@ OBJECT Page 50000 Performance Profiler
   {
     VAR
       ProfilerStarted@1001 : Boolean INDATASET;
-      PerformaceProfiler@1000 : DotNet "'EtwPerformanceProfiler, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.EtwPerformanceProfiler.EtwPerformanceProfiler";
+      PerformanceProfiler@1000 : DotNet "'EtwPerformanceProfiler, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.EtwPerformanceProfiler.EtwPerformanceProfiler";
       i@1002 : Integer;
-      r@1004 : Record 37;
+      TargetSessionID@1003 : Integer INDATASET;
 
     BEGIN
     END.
