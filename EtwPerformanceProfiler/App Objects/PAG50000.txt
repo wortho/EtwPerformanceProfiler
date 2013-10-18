@@ -23,6 +23,7 @@ OBJECT Page 50000 Performance Profiler
     SourceTable=Table50000;
     PageType=Worksheet;
     OnInit=BEGIN
+             Threshold := 1;
              TargetSessionID := SESSIONID;
            END;
 
@@ -52,14 +53,14 @@ OBJECT Page 50000 Performance Profiler
                       Image=Start;
                       PromotedCategory=Process;
                       OnAction=VAR
-                                 ProfilerRecord@1000 : Record 89260;
+                                 ProfilerRecord@1000 : Record 50000;
                                  i@1001 : Integer;
                                BEGIN
                                  CLEAR(Rec);
                                  Rec.SETFILTER("Session ID", '=%1', TargetSessionID);
                                  Rec.DELETEALL;
 
-                                 PerformanceProfiler.Start(TargetSessionID, 1);
+                                 PerformanceProfiler.Start(TargetSessionID, Threshold);
 
                                  ProfilerStarted := TRUE;
                                END;
@@ -94,6 +95,8 @@ OBJECT Page 50000 Performance Profiler
 
                                    I += 1;
                                  END;
+
+                                 Rec.SETFILTER("Session ID", '=%1', TargetSessionID);
                                END;
                                 }
       { 10      ;1   ;Action    ;
@@ -145,6 +148,10 @@ OBJECT Page 50000 Performance Profiler
                            END;
                             }
 
+    { 17  ;2   ;Field     ;
+                Name=Threshold;
+                SourceExpr=Threshold }
+
     { 2   ;1   ;Group     ;
                 Name=Call Tree;
                 Editable=FALSE;
@@ -189,6 +196,7 @@ OBJECT Page 50000 Performance Profiler
       I@1002 : Integer;
       TargetSessionID@1003 : Integer INDATASET;
       PleaseWaitCollectingData@1005 : TextConst 'ENU=Collecting performance data \\Please wait #1';
+      Threshold@1006 : Integer;
 
     LOCAL PROCEDURE WaitForDataToBeCollected@4();
     VAR
