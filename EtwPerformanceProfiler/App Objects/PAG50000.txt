@@ -1,7 +1,17 @@
+//--------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation.  All rights reserved.
+// THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY
+// OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT
+// LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+// FITNESS FOR A PARTICULAR PURPOSE.
+//--------------------------------------------------------------------------
+
 OBJECT Page 50000 Performance Profiler
 {
   OBJECT-PROPERTIES
   {
+    Date=;
+    Time=;
     Version List=Performance Profiler;
   }
   PROPERTIES
@@ -11,7 +21,7 @@ OBJECT Page 50000 Performance Profiler
     DeleteAllowed=No;
     ModifyAllowed=Yes;
     SourceTable=Table50000;
-    PageType=List;
+    PageType=Worksheet;
     OnInit=BEGIN
              TargetSessionID := SESSIONID;
            END;
@@ -42,11 +52,12 @@ OBJECT Page 50000 Performance Profiler
                       Image=Start;
                       PromotedCategory=Process;
                       OnAction=VAR
-                                 ProfilerRecord@1000 : Record 50000;
+                                 ProfilerRecord@1000 : Record 89260;
                                  i@1001 : Integer;
                                BEGIN
-                                 ProfilerRecord.SETFILTER("Session ID", '=%1', TargetSessionID);
-                                 ProfilerRecord.DELETEALL;
+                                 CLEAR(Rec);
+                                 Rec.SETFILTER("Session ID", '=%1', TargetSessionID);
+                                 Rec.DELETEALL;
 
                                  PerformanceProfiler.Start(TargetSessionID, 1);
 
@@ -60,30 +71,28 @@ OBJECT Page 50000 Performance Profiler
                       PromotedIsBig=Yes;
                       Image=Stop;
                       PromotedCategory=Process;
-                      OnAction=VAR
-                                 ProfilerRecord@1000 : Record 50000;
-                               BEGIN
-
+                      OnAction=BEGIN
+                                 WaitForDataToBeCollected;
                                  PerformanceProfiler.Stop;
 
                                  ProfilerStarted := FALSE;
-
-                                 ProfilerRecord.INIT;
-
-                                 i := 0;
+                                 I := 1;
 
                                  WHILE (PerformanceProfiler.CallTreeMoveNext) DO BEGIN
-                                   i += 1;
-                                   ProfilerRecord.Id := i;
-                                   ProfilerRecord."Session ID" := TargetSessionID;
-                                   ProfilerRecord.Indentation := PerformanceProfiler.CallTreeCurrentStatementIndentation;
-                                   ProfilerRecord."Object Type" := PerformanceProfiler.CallTreeCurrentStatementOwningObjectType;
-                                   ProfilerRecord."Object ID" := PerformanceProfiler.CallTreeCurrentStatementOwningObjectId;
-                                   ProfilerRecord."Line No" := PerformanceProfiler.CallTreeCurrentStatementLineNo;
-                                   ProfilerRecord.Statement := PerformanceProfiler.CallTreeCurrentStatement;
-                                   ProfilerRecord.Duration := PerformanceProfiler.CallTreeCurrentStatementDurationMs;
-                                   ProfilerRecord.HitCount := PerformanceProfiler.CallTreeCurrentStatementHitCount;
-                                   ProfilerRecord.INSERT;
+                                   CLEAR(Rec);
+                                   Rec.INIT;
+                                   Rec.Id := I;
+                                   Rec."Session ID" := TargetSessionID;
+                                   Rec.Indentation := PerformanceProfiler.CallTreeCurrentStatementIndentation;
+                                   Rec."Object Type" := PerformanceProfiler.CallTreeCurrentStatementOwningObjectType;
+                                   Rec."Object ID" := PerformanceProfiler.CallTreeCurrentStatementOwningObjectId;
+                                   Rec."Line No" := PerformanceProfiler.CallTreeCurrentStatementLineNo;
+                                   Rec.Statement := PerformanceProfiler.CallTreeCurrentStatement;
+                                   Rec.Duration := PerformanceProfiler.CallTreeCurrentStatementDurationMs;
+                                   Rec.HitCount := PerformanceProfiler.CallTreeCurrentStatementHitCount;
+                                   Rec.INSERT;
+
+                                   I += 1;
                                  END;
                                END;
                                 }
@@ -144,7 +153,9 @@ OBJECT Page 50000 Performance Profiler
                 GroupType=Repeater }
 
     { 7   ;2   ;Field     ;
-                SourceExpr="Object Type" }
+                SourceExpr="Object Type";
+                Enabled=FALSE;
+                Editable=FALSE }
 
     { 4   ;2   ;Field     ;
                 SourceExpr="Object ID" }
@@ -172,10 +183,26 @@ OBJECT Page 50000 Performance Profiler
   CODE
   {
     VAR
-      ProfilerStarted@1001 : Boolean INDATASET;
+      ProgressDialog@1004 : Dialog;
       PerformanceProfiler@1000 : DotNet "'EtwPerformanceProfiler, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.EtwPerformanceProfiler.EtwPerformanceProfiler";
-      i@1002 : Integer;
+      ProfilerStarted@1001 : Boolean INDATASET;
+      I@1002 : Integer;
       TargetSessionID@1003 : Integer INDATASET;
+      PleaseWaitCollectingData@1005 : TextConst 'ENU=Collecting performance data \\Please wait #1';
+
+    LOCAL PROCEDURE WaitForDataToBeCollected@4();
+    VAR
+      SecondsToWait@1000 : Integer;
+    BEGIN
+      SecondsToWait := 3;
+      ProgressDialog.OPEN(PleaseWaitCollectingData);
+      WHILE SecondsToWait > 0 DO BEGIN
+        ProgressDialog.UPDATE(1,STRSUBSTNO('%1 s',SecondsToWait));
+        SLEEP(1000);
+        SecondsToWait -= 1;
+      END;
+      ProgressDialog.CLOSE;
+    END;
 
     BEGIN
     END.
