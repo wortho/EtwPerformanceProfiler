@@ -1,11 +1,3 @@
-//--------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation.  All rights reserved.
-// THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY
-// OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT
-// LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-// FITNESS FOR A PARTICULAR PURPOSE.
-//--------------------------------------------------------------------------
-
 OBJECT Page 50000 Performance Profiler
 {
   OBJECT-PROPERTIES
@@ -21,7 +13,7 @@ OBJECT Page 50000 Performance Profiler
     DeleteAllowed=No;
     ModifyAllowed=Yes;
     SourceTable=Table50000;
-    PageType=Worksheet;
+    PageType=List;
     OnInit=BEGIN
              Threshold := 1;
              TargetSessionID := SESSIONID;
@@ -32,6 +24,12 @@ OBJECT Page 50000 Performance Profiler
                  // This assumption might be wrong.
                  ProfilerStarted := FALSE;
                  Rec.SETFILTER("Session ID", '=%1', TargetSessionID);
+
+                 IF (Rec.ISEMPTY) THEN BEGIN
+                   Rec."Session ID" := TargetSessionID;
+                   Rec.INSERT;
+                 END;
+
                  PerformanceProfiler := PerformanceProfiler.EtwPerformanceProfiler();
                END;
 
@@ -39,6 +37,10 @@ OBJECT Page 50000 Performance Profiler
                        LinesHit@1003 : Integer;
                      BEGIN
                      END;
+
+    OnAfterGetCurrRecord=BEGIN
+                           CALCFIELDS(Total);
+                         END;
 
     ActionList=ACTIONS
     {
@@ -148,7 +150,7 @@ OBJECT Page 50000 Performance Profiler
                            END;
                             }
 
-    { 17  ;2   ;Field     ;
+    { 19  ;2   ;Field     ;
                 Name=Threshold;
                 SourceExpr=Threshold }
 
@@ -174,6 +176,7 @@ OBJECT Page 50000 Performance Profiler
                 SourceExpr=Statement }
 
     { 9   ;2   ;Field     ;
+                CaptionML=ENU=Duration (ms);
                 SourceExpr=Duration;
                 Style=Attention }
 
@@ -185,6 +188,17 @@ OBJECT Page 50000 Performance Profiler
 
     { 8   ;2   ;Field     ;
                 SourceExpr="Session ID" }
+
+    { 17  ;1   ;Group     ;
+                GroupType=Group }
+
+    { 18  ;2   ;Field     ;
+                CaptionML=ENU=Total Time (ms):;
+                SourceExpr=Total;
+                Enabled=FALSE;
+                Editable=FALSE;
+                Style=Strong;
+                StyleExpr=TRUE }
 
   }
   CODE

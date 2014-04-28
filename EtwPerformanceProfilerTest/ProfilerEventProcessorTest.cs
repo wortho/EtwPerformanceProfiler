@@ -57,15 +57,13 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
-                        ObjectId = 9,
+                        ObjectId = 0,
                         Type = EventType.StopMethod,
                         StatementName = "SQL"
                     }, // 5
                 };
 
-            var profilerEventProcessor = new ProfilerEventProcessor(0);
-
-            AggregatedEventNode aggregatedCallTree = profilerEventProcessor.BuildAggregatedCallTree(profilerEventList);
+            AggregatedEventNode aggregatedCallTree = BuildAggregatedCallTree(profilerEventList);
 
             AggregatedEventNode expected = new AggregatedEventNode();
             AggregatedEventNode currentNode = expected;
@@ -124,9 +122,7 @@ namespace EtwPerformanceProfilerTest
             AddForIteration(profilerEventList);
             AddForIteration(profilerEventList);
 
-            var profilerEventProcessor = new ProfilerEventProcessor(0);
-
-            AggregatedEventNode aggregatedCallTree = profilerEventProcessor.BuildAggregatedCallTree(profilerEventList);
+            AggregatedEventNode aggregatedCallTree = BuildAggregatedCallTree(profilerEventList);
 
             AggregatedEventNode expected = new AggregatedEventNode();
             AggregatedEventNode currentNode = expected;
@@ -397,9 +393,7 @@ namespace EtwPerformanceProfilerTest
                         }, // 9
                 };
 
-            var profilerEventProcessor = new ProfilerEventProcessor(0);
-
-            AggregatedEventNode aggregatedCallTree = profilerEventProcessor.BuildAggregatedCallTree(profilerEventList);
+            AggregatedEventNode aggregatedCallTree = BuildAggregatedCallTree(profilerEventList);
 
             AggregatedEventNode expected = new AggregatedEventNode();
             AggregatedEventNode currentNode = expected;
@@ -482,9 +476,7 @@ namespace EtwPerformanceProfilerTest
                         }, // 6
                 };
 
-            var profilerEventProcessor = new ProfilerEventProcessor(0);
-
-            AggregatedEventNode aggregatedCallTree = profilerEventProcessor.BuildAggregatedCallTree(profilerEventList);
+            AggregatedEventNode aggregatedCallTree = BuildAggregatedCallTree(profilerEventList);
 
             AggregatedEventNode expected = new AggregatedEventNode();
             AggregatedEventNode currentNode = expected;
@@ -530,6 +522,33 @@ namespace EtwPerformanceProfilerTest
 
                 Assert.IsTrue(object.ReferenceEquals(Statement, cahcedStatement));
             }
+        }
+
+        /// <summary>
+        /// Builds the accumulated result of processing the stored ETW events
+        /// </summary>
+        /// <param name="profilerEvents">The list of profiler events.</param>
+        /// <returns>An instance of an AggregatedEventNode tree.</returns>
+        internal static AggregatedEventNode BuildAggregatedCallTree(IList<ProfilerEvent> profilerEvents)
+        {
+            AggregatedEventNode aggregatedCallTree = new AggregatedEventNode();
+            AggregatedEventNode currentAggregatedEventNode = aggregatedCallTree;
+
+            ProfilerEvent? previousProfilerEvent = null;
+            ProfilerEvent? currentProfilerEvent = null;
+
+            for (int i = 0; i < profilerEvents.Count; i++)
+            {
+                currentProfilerEvent = profilerEvents[i];
+
+                ProfilerEventProcessor.AddProfilerEventToAggregatedCallTree(previousProfilerEvent, currentProfilerEvent, ref currentAggregatedEventNode);
+
+                previousProfilerEvent = currentProfilerEvent;
+            }
+
+            ProfilerEventProcessor.AddProfilerEventToAggregatedCallTree(previousProfilerEvent, null, ref currentAggregatedEventNode);
+
+            return aggregatedCallTree;
         }
     }
 }

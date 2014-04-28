@@ -207,11 +207,6 @@ namespace EtwPerformanceProfiler
         private readonly int threshold;
 
         /// <summary>
-        /// The profiler event list
-        /// </summary>
-        private readonly IList<ProfilerEvent> profilerEventList;
-
-        /// <summary>
         /// The associated event processor
         /// </summary>
         private EtwEventProcessor etwEventProcessor;
@@ -225,6 +220,16 @@ namespace EtwPerformanceProfiler
         /// The cumulated aggregated call tree
         /// </summary>
         private AggregatedEventNode aggregatedCallTree;
+
+        /// <summary>
+        /// Current aggregated event in the call tree.
+        /// </summary>
+        private AggregatedEventNode currentAggregatedEventNode;
+
+        /// <summary>
+        /// Previous profiler event which was processed.
+        /// </summary>
+        ProfilerEvent? previousProfilerEvent;
 
         /// <summary>
         /// The key is the string and the value is exactly the same string.
@@ -246,13 +251,9 @@ namespace EtwPerformanceProfiler
 
             this.threshold = threshold;
 
-            this.profilerEventList = new List<ProfilerEvent>();
-
-            this.aggregatedCallTree = null;
-
             this.statementCache = new Dictionary<string, string>();
 
-            this.etwEventProcessor = new EtwEventProcessor(ProviderName, traceEvent => this.EtwEventHandler(traceEvent, this.profilerEventList));
+            this.etwEventProcessor = new EtwEventProcessor(ProviderName, this.EtwEventHandler);
         }
 
         /// <summary>
@@ -269,7 +270,20 @@ namespace EtwPerformanceProfiler
         /// </summary>
         internal void Start()
         {
+            this.Initialize();
+
             this.etwEventProcessor.StartProcessing();
+        }
+
+        /// <summary>
+        /// Initializes state of the <see cref="ProfilerEventProcessor"/>
+        /// </summary>
+        private void Initialize()
+        {
+            this.aggregatedCallTree = new AggregatedEventNode();
+            this.currentAggregatedEventNode = aggregatedCallTree;
+
+            this.previousProfilerEvent = null;
         }
 
         /// <summary>
@@ -286,7 +300,7 @@ namespace EtwPerformanceProfiler
 
             if (buildAggregatedCallTree)
             {
-                this.aggregatedCallTree = this.BuildAggregatedCallTree(this.profilerEventList);
+                AddProfilerEventToAggregatedCallTree(this.previousProfilerEvent, null, ref this.currentAggregatedEventNode);
 
                 if (this.aggregatedCallTree != null)
                 {
@@ -369,71 +383,76 @@ namespace EtwPerformanceProfiler
         }
 
         /// <summary>
-        /// Builds the accumulated result of processing the stored ETW events
+        /// Processes aggregated event. This method calls either <see cref="AggregatedEventNode.PushEventIntoCallStack"/> or 
+        /// <see cref="AggregatedEventNode.PopEventFromCallStackAndCalculateDuration"/> on the <see cref="currentAggregatedEventNode"/>.
         /// </summary>
-        /// <param name="profilerEvents">The list of profiler events.</param>
-        /// <returns>An instance of an AggregatedEventNode tree.</returns>
-        internal AggregatedEventNode BuildAggregatedCallTree(IList<ProfilerEvent> profilerEvents)
+        /// <param name="previousProfilerEvent">Previous profiler event which was processed.</param>
+        /// <param name="currentProfilerEvent">Profiler event which currently being processed.</param>
+        /// <param name="currentAggregatedEventNode">Current aggregated event in the call tree.</param>
+        internal static void AddProfilerEventToAggregatedCallTree(
+            ProfilerEvent? previousProfilerEvent,
+            ProfilerEvent? currentProfilerEvent,
+            ref AggregatedEventNode currentAggregatedEventNode)
         {
-            this.aggregatedCallTree = new AggregatedEventNode();
-            AggregatedEventNode currentAggregatedEventNode = this.aggregatedCallTree;
-
-            for (int i = 0; i < profilerEvents.Count; i++)
+            if (previousProfilerEvent.HasValue && previousProfilerEvent.Value.Type == EventType.StopMethod)
             {
-                ProfilerEvent currentProfilerEvent = profilerEvents[i];
+                // We have alrady calculated duration for the previous statement
+                // and pop it from the statement call stack. 
 
-                if (currentProfilerEvent.Type == EventType.Statement)
+                if (currentAggregatedEventNode.Parent != null && // We should never pop root event. This can happen if we miss some events in the begining.
+                    (previousProfilerEvent.Value.IsSqlEvent || // Always close sql events.
+                     !currentProfilerEvent.HasValue || // Previous event is the last one.
+                     currentProfilerEvent.Value.IsSqlEvent || // The current event is sql. It comes after stop event. Need to pop the the current aggregated node.
+                     currentProfilerEvent.Value.Type != EventType.StartMethod || // The current event is not the start. If it is start event when we are in the nested call. 
+                     currentAggregatedEventNode.OriginalType == EventType.StartMethod))
                 {
-                    // If there are two consequent statements then first we need to calculate the duration for the previous
-                    // one and pop it from the statement call stack. 
-                    // Then we push the current statement event into the stack
-                    if (currentAggregatedEventNode.Parent != null && currentAggregatedEventNode.EvaluatedType == EventType.Statement)
-                    {
-                        currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(currentProfilerEvent.TimeStamp100ns);
-                    }
-
-                    currentAggregatedEventNode = currentAggregatedEventNode.PushEventIntoCallStack(currentProfilerEvent);
-
-                    continue;
-                }
-
-                if (currentProfilerEvent.Type == EventType.StartMethod)
-                {
-                    // If it is the root method or if it is SQL event we also push start event into the stack.
-                    if (currentAggregatedEventNode.Parent == null || currentProfilerEvent.IsSqlEvent)
-                    {
-                        currentAggregatedEventNode = currentAggregatedEventNode.PushEventIntoCallStack(currentProfilerEvent);
-                    }
-
-                    currentAggregatedEventNode.EvaluatedType = EventType.StartMethod;
-
-                    continue;
-                }
-
-                // Method stop.
-                if (currentProfilerEvent.Type == EventType.StopMethod)
-                {
-                    // First need to calculate the duration for the previous statement
-                    // and pop it from the statement call stack. 
-                    if (currentAggregatedEventNode.Parent != null && currentAggregatedEventNode.EvaluatedType == EventType.Statement)
-                    {
-                        currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(currentProfilerEvent.TimeStamp100ns);
-                    }
-
-                    // We should never pop root event. This can happen if we miss some events in the begining.
-                    if (currentAggregatedEventNode.Parent != null && 
-                        (currentProfilerEvent.IsSqlEvent || // Always close sql events.
-                        i == profilerEvents.Count - 1 || // Current event is the last one.
-                        profilerEvents[i + 1].IsSqlEvent || // The next event is sql. It should be start event.
-                        profilerEvents[i + 1].Type != EventType.StartMethod || // Next event is not the start.
-                        currentAggregatedEventNode.OriginalType == EventType.StartMethod)) // Current eggregated event is start so we need to pop it.
-                    {
-                        currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(currentProfilerEvent.TimeStamp100ns);
-                    }
+                    currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(previousProfilerEvent.Value.TimeStamp100ns);
                 }
             }
 
-            return this.aggregatedCallTree;
+            if (!currentProfilerEvent.HasValue)
+            {
+                return;
+            }
+
+            if (currentProfilerEvent.Value.Type == EventType.Statement)
+            {
+                // If there are two consequent statements then first we need to calculate the duration for the previous
+                // one and pop it from the statement call stack. 
+                // Then we push the current statement event into the stack
+                if (currentAggregatedEventNode.Parent != null && currentAggregatedEventNode.EvaluatedType == EventType.Statement)
+                {
+                    currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(currentProfilerEvent.Value.TimeStamp100ns);
+                }
+
+                currentAggregatedEventNode = currentAggregatedEventNode.PushEventIntoCallStack(currentProfilerEvent.Value);
+
+                return;
+            }
+
+            if (currentProfilerEvent.Value.Type == EventType.StartMethod)
+            {
+                // If it is the root method or if it is SQL event we also push start event into the stack.
+                if (currentAggregatedEventNode.Parent == null || currentProfilerEvent.Value.IsSqlEvent)
+                {
+                    currentAggregatedEventNode = currentAggregatedEventNode.PushEventIntoCallStack(currentProfilerEvent.Value);
+                }
+
+                currentAggregatedEventNode.EvaluatedType = EventType.StartMethod;
+
+                return;
+            }
+
+            // Method stop.
+            if (currentProfilerEvent.Value.Type == EventType.StopMethod)
+            {
+                // First need to calculate duration for the previous statement
+                // and pop it from the statement call stack. 
+                if (currentAggregatedEventNode.Parent != null && currentAggregatedEventNode.EvaluatedType == EventType.Statement)
+                {
+                    currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(currentProfilerEvent.Value.TimeStamp100ns);
+                }
+            }
         }
 
         /// <summary>
@@ -460,8 +479,7 @@ namespace EtwPerformanceProfiler
         /// The callback which is called every time new event appears.
         /// </summary>
         /// <param name="traceEvent">The trace event.</param>
-        /// <param name="traceEventlist">A list of accumulated profiler events.</param>
-        private void EtwEventHandler(TraceEvent traceEvent, IList<ProfilerEvent> traceEventlist)
+        private void EtwEventHandler(TraceEvent traceEvent)
         {
             int statementLoadIndex;
             EventType type;
@@ -537,7 +555,7 @@ namespace EtwPerformanceProfiler
 
             statement = this.GetStatementFromTheCache(statement);
 
-            ProfilerEvent profilerEvent = new ProfilerEvent
+            ProfilerEvent? currentProfilerEvent = new ProfilerEvent
                 {
                     Type = type,
                     ObjectType = objectType,
@@ -547,7 +565,9 @@ namespace EtwPerformanceProfiler
                     TimeStamp100ns = traceEvent.TimeStamp100ns
                 };
 
-            traceEventlist.Add(profilerEvent);
+            AddProfilerEventToAggregatedCallTree(this.previousProfilerEvent, currentProfilerEvent, ref this.currentAggregatedEventNode);
+
+            this.previousProfilerEvent = currentProfilerEvent;
         }      
     }
 }
