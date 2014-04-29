@@ -105,7 +105,11 @@ namespace EtwPerformanceProfiler
 
             if (res != null)
             {
+                // We need to initialize state of the AggregatedEventNode.
+                // Otherwise duration will not be calculated correctly or we can get broken tree structure.
+                res.EvaluatedType = profilerEvent.Type;
                 res.StartTimeStamp100ns = profilerEvent.TimeStamp100ns;
+
                 ++res.HitCount;
                 return res;
             }

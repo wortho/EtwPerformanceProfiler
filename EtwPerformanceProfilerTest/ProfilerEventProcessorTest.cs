@@ -550,5 +550,126 @@ namespace EtwPerformanceProfilerTest
 
             return aggregatedCallTree;
         }
+
+        /// <summary>
+        /// 
+        /// RootMethod; // 1
+        /// RootMethod; // 2
+        /// 
+        /// RootMethod()
+        ///     rec1.DELETEALL; 
+        ///     // first time it calls foo();
+        ///     rec2.DELETEALL;
+        /// 
+        /// foo()
+        ///     var1 += 1;
+        /// 
+        /// Same statement called twice. First time it issues method call second time does not.
+        /// </summary>
+        [TestMethod]
+        public void BuildAggregatedCallTreeSameStatementCalledTwice()
+        {
+            List<ProfilerEvent> profilerEventList = new List<ProfilerEvent>
+                {        
+                    new ProfilerEvent
+                    {
+                        ObjectId = 1,
+                        Type = EventType.StartMethod,
+                        StatementName = "RootMethod"
+                    }, // 0
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 1,
+                        Type = EventType.Statement,
+                        StatementName = "rec1.DELETEALL"
+                    }, // 1
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 1,
+                        Type = EventType.StartMethod,
+                        StatementName = "foo"
+                    }, // 2
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 1,
+                        Type = EventType.Statement,
+                        StatementName = "var1 += 1"
+                    }, // 3
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 1,
+                        Type = EventType.StopMethod,
+                        StatementName = "foo"
+                    }, // 4
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 1,
+                        Type = EventType.Statement,
+                        StatementName = "rec2.DELETEALL"
+                    }, // 5
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 1,
+                        Type = EventType.StopMethod,
+                        StatementName = "RootMethod"
+                    }, // 6
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 1,
+                        Type = EventType.StartMethod,
+                        StatementName = "RootMethod"
+                    }, // 7
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 1,
+                        Type = EventType.Statement,
+                        StatementName = "rec1.DELETEALL"
+                    }, // 8
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 1,
+                        Type = EventType.Statement,
+                        StatementName = "rec2.DELETEALL"
+                    }, // 9
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 1,
+                        Type = EventType.StopMethod,
+                        StatementName = "RootMethod"
+                    }, // 10
+                };
+
+            AggregatedEventNode aggregatedCallTree = BuildAggregatedCallTree(profilerEventList);
+
+            AggregatedEventNode expected = new AggregatedEventNode();
+            AggregatedEventNode currentNode = expected;
+
+            currentNode = currentNode.PushEventIntoCallStack(profilerEventList[0]); // +RootMethod
+            currentNode = currentNode.PushEventIntoCallStack(profilerEventList[1]); // +rec1.DELETEALL
+            currentNode = currentNode.PushEventIntoCallStack(profilerEventList[3]); // +var1 += 1
+            currentNode = currentNode.PopEventFromCallStackAndCalculateDuration(0); // -var1 += 1
+            currentNode = currentNode.PopEventFromCallStackAndCalculateDuration(0); // -rec1.DELETEALL
+            currentNode = currentNode.PushEventIntoCallStack(profilerEventList[5]); // +rec2.DELETEALL
+            currentNode = currentNode.PopEventFromCallStackAndCalculateDuration(0); // -rec2.DELETEALL
+            currentNode = currentNode.PopEventFromCallStackAndCalculateDuration(0); // -RootMethod
+            currentNode = currentNode.PushEventIntoCallStack(profilerEventList[0]); // +RootMethod
+            currentNode = currentNode.PushEventIntoCallStack(profilerEventList[1]); // +rec1.DELETEALL
+            currentNode = currentNode.PopEventFromCallStackAndCalculateDuration(0); // -rec1.DELETEALL
+            currentNode = currentNode.PushEventIntoCallStack(profilerEventList[5]); // +rec2.DELETEALL
+            currentNode = currentNode.PopEventFromCallStackAndCalculateDuration(0); // -rec2.DELETEALL
+            currentNode = currentNode.PopEventFromCallStackAndCalculateDuration(0); // -RootMethod
+
+            AssertAggregatedEventNode(expected, aggregatedCallTree);
+        }
     }
 }
