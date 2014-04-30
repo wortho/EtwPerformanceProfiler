@@ -15,7 +15,7 @@ OBJECT Page 50000 Performance Profiler
     SourceTable=Table50000;
     PageType=List;
     OnInit=BEGIN
-             Threshold := 1;
+             Threshold := 0;
              TargetSessionID := SESSIONID;
            END;
 
