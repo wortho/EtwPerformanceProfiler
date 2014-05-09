@@ -62,7 +62,7 @@ namespace EtwPerformanceProfiler
         /// <summary>
         /// Gets or sets the time stamp in 100ns.
         /// </summary>
-        internal long TimeStamp100ns { get; set; }
+        internal double TimeStampRelativeMSec { get; set; }
 
         /// <summary>
         /// Returns true if this is the Sql event.
@@ -89,7 +89,7 @@ namespace EtwPerformanceProfiler
             return this.Type.Equals(other.Type) && this.ObjectType.Equals(other.ObjectType)
                    && this.ObjectId.Equals(other.ObjectId) && this.LineNo.Equals(other.LineNo)
                    && this.StatementName.Equals(other.StatementName) &&
-                   this.TimeStamp100ns.Equals(other.TimeStamp100ns);
+                   this.TimeStampRelativeMSec.Equals(other.TimeStampRelativeMSec);
         }
 
         /// <summary>
@@ -121,7 +121,7 @@ namespace EtwPerformanceProfiler
         public override int GetHashCode()
         {
             return this.Type.GetHashCode() ^ this.ObjectId.GetHashCode() ^ this.ObjectType.GetHashCode()
-                   ^ this.StatementName.GetHashCode() ^ this.LineNo.GetHashCode() ^ this.TimeStamp100ns.GetHashCode();
+                   ^ this.StatementName.GetHashCode() ^ this.LineNo.GetHashCode() ^ this.TimeStampRelativeMSec.GetHashCode();
         }
     }
 }

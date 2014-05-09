@@ -8,10 +8,11 @@
 
 namespace ETWPerformanceProfiler
 {
-    using Diagnostics.Tracing;
     using System;
     using System.Threading.Tasks;
-    using Diagnostics.Tracing.Parsers;
+    using Microsoft.Diagnostics.Tracing.Parsers;
+    using Microsoft.Diagnostics.Tracing;
+    using Microsoft.Diagnostics.Tracing.Session;
 
     /// <summary>
     /// Use this class to dynamically listen to the ETW events.
@@ -67,7 +68,7 @@ namespace ETWPerformanceProfiler
         internal EtwEventProcessor(string providerName, Action<TraceEvent> traceEventHandler)
         {
             this.providerName = providerName;
-            this.providerGuid = TraceEventSession.GetEventSourceGuidFromName(this.providerName);
+            this.providerGuid = TraceEventProviders.GetEventSourceGuidFromName(this.providerName);
             this.traceEventHandler = traceEventHandler;
         }
 
@@ -143,7 +144,7 @@ namespace ETWPerformanceProfiler
             {
                 if (this.traceEventSource != null)
                 {
-                    this.traceEventSource.Close();
+                    this.traceEventSource.StopProcessing();
 
                     this.eventProcessingTask.Wait();
 

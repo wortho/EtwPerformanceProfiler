@@ -15,6 +15,7 @@
     <SccLocalPath>SAK</SccLocalPath>
     <SccAuxPath>SAK</SccAuxPath>
     <SccProvider>SAK</SccProvider>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -34,6 +35,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.Diagnostics.Tracing.TraceEvent">
+      <HintPath>..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.11\lib\net40\Microsoft.Diagnostics.Tracing.TraceEvent.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -41,9 +45,6 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="TraceEvent">
-      <HintPath>..\TraceEvent\TraceEvent.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AggregatedEventNode.cs" />
@@ -53,12 +54,18 @@
     <Compile Include="ProfilerEventProcessor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="_TraceEventProgrammersGuide.docx" />
+  </ItemGroup>
   <ItemGroup>
     <Content Include="App Objects\PAG50000.txt" />
     <Content Include="App Objects\TAB50000.txt" />
+    <Content Include="TraceEvent.ReadMe.txt" />
+    <Content Include="TraceEvent.ReleaseNotes.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.11\tools\Microsoft.Diagnostics.Tracing.TraceEvent.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

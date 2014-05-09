@@ -10,7 +10,7 @@ namespace EtwPerformanceProfiler
 {
     using System;
     using System.Collections.Generic;
-    using Diagnostics.Tracing;
+    using Microsoft.Diagnostics.Tracing;
     using ETWPerformanceProfiler;
 
     /// <summary>
@@ -204,7 +204,7 @@ namespace EtwPerformanceProfiler
         /// <summary>
         /// The threashold value. The aggregated call three will be filtered on values greater than the threshold.
         /// </summary>
-        private readonly int threshold;
+        private readonly long threshold;
 
         /// <summary>
         /// The associated event processor
@@ -245,7 +245,7 @@ namespace EtwPerformanceProfiler
         /// </summary>
         /// <param name="sessionId">The session id.</param>
         /// <param name="threshold">The threshold value. The aggregated call tree will only show events greater than this.</param>
-        internal ProfilerEventProcessor(int sessionId, int threshold = 0)
+        internal ProfilerEventProcessor(int sessionId, long threshold = 0)
         {
             this.profilingSessionId = sessionId;
 
@@ -369,7 +369,7 @@ namespace EtwPerformanceProfiler
             for (int index = 0; index < rootNode.Children.Count; index++)
             {
                 AggregatedEventNode node = rootNode.Children[index];
-                if ((node.Duration100ns/10000) < this.threshold)
+                if (node.DurationMSec < this.threshold)
                 {
                     node.Children.Clear();
                     rootNode.Children.Remove(node);
@@ -406,7 +406,7 @@ namespace EtwPerformanceProfiler
                      currentProfilerEvent.Value.Type != EventType.StartMethod || // The current event is not the start. If it is start event when we are in the nested call. 
                      currentAggregatedEventNode.OriginalType == EventType.StartMethod))
                 {
-                    currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(previousProfilerEvent.Value.TimeStamp100ns);
+                    currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(previousProfilerEvent.Value.TimeStampRelativeMSec);
                 }
             }
 
@@ -422,7 +422,7 @@ namespace EtwPerformanceProfiler
                 // Then we push the current statement event into the stack
                 if (currentAggregatedEventNode.Parent != null && currentAggregatedEventNode.EvaluatedType == EventType.Statement)
                 {
-                    currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(currentProfilerEvent.Value.TimeStamp100ns);
+                    currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(currentProfilerEvent.Value.TimeStampRelativeMSec);
                 }
 
                 currentAggregatedEventNode = currentAggregatedEventNode.PushEventIntoCallStack(currentProfilerEvent.Value);
@@ -450,7 +450,7 @@ namespace EtwPerformanceProfiler
                 // and pop it from the statement call stack. 
                 if (currentAggregatedEventNode.Parent != null && currentAggregatedEventNode.EvaluatedType == EventType.Statement)
                 {
-                    currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(currentProfilerEvent.Value.TimeStamp100ns);
+                    currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(currentProfilerEvent.Value.TimeStampRelativeMSec);
                 }
             }
         }
@@ -562,7 +562,7 @@ namespace EtwPerformanceProfiler
                     ObjectId = objectId,
                     LineNo = lineNo,
                     StatementName = statement,
-                    TimeStamp100ns = traceEvent.TimeStamp100ns
+                    TimeStampRelativeMSec = traceEvent.TimeStampRelativeMSec
                 };
 
             AddProfilerEventToAggregatedCallTree(this.previousProfilerEvent, currentProfilerEvent, ref this.currentAggregatedEventNode);

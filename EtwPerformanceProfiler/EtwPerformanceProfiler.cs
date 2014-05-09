@@ -74,11 +74,11 @@ namespace EtwPerformanceProfiler
         /// <summary>
         /// Gets call tree's current statements duration in miliseconds
         /// </summary>
-        public int CallTreeCurrentStatementDurationMs
+        public long CallTreeCurrentStatementDurationMs
         {
             get
             {
-                return (int)(this.callTree.Current.Duration100ns / 10000);
+                return (long)this.callTree.Current.DurationMSec;
             }
         }
 

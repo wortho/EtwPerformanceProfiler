@@ -39,7 +39,7 @@ namespace EtwPerformanceProfiler
         /// <summary>
         /// Gets or sets the duration in 100ns.
         /// </summary>
-        internal long Duration100ns { get; private set; }
+        internal double DurationMSec { get; private set; }
 
         /// <summary>
         /// Gets the children of the current node.
@@ -54,7 +54,7 @@ namespace EtwPerformanceProfiler
         /// <summary>
         /// Gets or sets the time stamp in 100ns.
         /// </summary>
-        internal long StartTimeStamp100ns { get; private set; }
+        internal double TimeStampRelativeMSec { get; private set; }
 
         /// <summary>
         /// Gets or sets the parent node.
@@ -108,7 +108,7 @@ namespace EtwPerformanceProfiler
                 // We need to initialize state of the AggregatedEventNode.
                 // Otherwise duration will not be calculated correctly or we can get broken tree structure.
                 res.EvaluatedType = profilerEvent.Type;
-                res.StartTimeStamp100ns = profilerEvent.TimeStamp100ns;
+                res.TimeStampRelativeMSec = profilerEvent.TimeStampRelativeMSec;
 
                 ++res.HitCount;
                 return res;
@@ -120,7 +120,7 @@ namespace EtwPerformanceProfiler
                     ObjectId = profilerEvent.ObjectId,
                     LineNo = profilerEvent.LineNo,
                     StatementName = profilerEvent.StatementName,
-                    StartTimeStamp100ns = profilerEvent.TimeStamp100ns,
+                    TimeStampRelativeMSec = profilerEvent.TimeStampRelativeMSec,
                     OriginalType = profilerEvent.Type,
                     EvaluatedType = profilerEvent.Type
                 };
@@ -131,9 +131,9 @@ namespace EtwPerformanceProfiler
             return res;
         }
 
-        internal AggregatedEventNode PopEventFromCallStackAndCalculateDuration(long endTimeStamp100Ns)
+        internal AggregatedEventNode PopEventFromCallStackAndCalculateDuration(double endTimeStampRelativeMSec)
         {
-            this.Duration100ns += (endTimeStamp100Ns - this.StartTimeStamp100ns);
+            this.DurationMSec += (endTimeStampRelativeMSec - this.TimeStampRelativeMSec);
 
             return this.Parent;
         }
