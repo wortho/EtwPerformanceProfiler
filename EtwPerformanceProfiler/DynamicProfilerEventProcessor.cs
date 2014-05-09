@@ -209,7 +209,7 @@ namespace EtwPerformanceProfiler
         /// <summary>
         /// The associated event processor
         /// </summary>
-        private EtwEventProcessor etwEventProcessor;
+        private DynamicEtwEventProcessor _dynamicEtwEventProcessor;
 
         /// <summary>
         /// A flag specifying whether this instance has been disposed.
@@ -253,7 +253,7 @@ namespace EtwPerformanceProfiler
 
             this.statementCache = new Dictionary<string, string>();
 
-            this.etwEventProcessor = new EtwEventProcessor(ProviderName, this.EtwEventHandler);
+            this._dynamicEtwEventProcessor = new DynamicEtwEventProcessor(ProviderName, this.EtwEventHandler);
         }
 
         /// <summary>
@@ -272,7 +272,7 @@ namespace EtwPerformanceProfiler
         {
             this.Initialize();
 
-            this.etwEventProcessor.StartProcessing();
+            this._dynamicEtwEventProcessor.StartProcessing();
         }
 
         /// <summary>
@@ -292,10 +292,10 @@ namespace EtwPerformanceProfiler
         /// <param name="buildAggregatedCallTree">true if the aggregated call is to be built.</param>
         internal void Stop(bool buildAggregatedCallTree = true)
         {
-            if (this.etwEventProcessor != null)
+            if (this._dynamicEtwEventProcessor != null)
             {
-                this.etwEventProcessor.Dispose();
-                this.etwEventProcessor = null;                
+                this._dynamicEtwEventProcessor.Dispose();
+                this._dynamicEtwEventProcessor = null;                
             }
 
             if (buildAggregatedCallTree)

@@ -48,7 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AggregatedEventNode.cs" />
-    <Compile Include="EtwEventProcessor.cs" />
+    <Compile Include="DynamicEtwEventProcessor.cs" />
     <Compile Include="EtwPerformanceProfiler.cs" />
     <Compile Include="ProfilerEvent.cs" />
     <Compile Include="DynamicProfilerEventProcessor.cs" />
