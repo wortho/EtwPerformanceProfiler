@@ -51,7 +51,7 @@
     <Compile Include="EtwEventProcessor.cs" />
     <Compile Include="EtwPerformanceProfiler.cs" />
     <Compile Include="ProfilerEvent.cs" />
-    <Compile Include="ProfilerEventProcessor.cs" />
+    <Compile Include="DynamicProfilerEventProcessor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

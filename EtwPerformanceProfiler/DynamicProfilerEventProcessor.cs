@@ -16,7 +16,7 @@ namespace EtwPerformanceProfiler
     /// <summary>
     /// Defines the event processor class.
     /// </summary>
-    internal class ProfilerEventProcessor : IDisposable
+    internal class DynamicProfilerEventProcessor : IDisposable
     {
         #region SQL events defeined by the Nav server
         /// <summary>
@@ -241,11 +241,11 @@ namespace EtwPerformanceProfiler
         #endregion
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ProfilerEventProcessor"/> class.
+        /// Initializes a new instance of the <see cref="DynamicProfilerEventProcessor"/> class.
         /// </summary>
         /// <param name="sessionId">The session id.</param>
         /// <param name="threshold">The threshold value. The aggregated call tree will only show events greater than this.</param>
-        internal ProfilerEventProcessor(int sessionId, long threshold = 0)
+        internal DynamicProfilerEventProcessor(int sessionId, long threshold = 0)
         {
             this.profilingSessionId = sessionId;
 
@@ -276,7 +276,7 @@ namespace EtwPerformanceProfiler
         }
 
         /// <summary>
-        /// Initializes state of the <see cref="ProfilerEventProcessor"/>
+        /// Initializes state of the <see cref="DynamicProfilerEventProcessor"/>
         /// </summary>
         private void Initialize()
         {
@@ -481,6 +481,14 @@ namespace EtwPerformanceProfiler
         /// <param name="traceEvent">The trace event.</param>
         private void EtwEventHandler(TraceEvent traceEvent)
         {
+            int sessionId = (int)traceEvent.PayloadValue(SessionIdPayloadIndex);
+
+            if (sessionId != this.profilingSessionId)
+            {
+                // we are interested only in events for the profiling session
+                return;
+            }
+
             int statementLoadIndex;
             EventType type;
             switch ((int)traceEvent.ID)
@@ -523,14 +531,6 @@ namespace EtwPerformanceProfiler
                     break;
                 default:
                     return;
-            }
-
-            int sessionId = (int)traceEvent.PayloadValue(SessionIdPayloadIndex);
-
-            if (sessionId != this.profilingSessionId)
-            {
-                // we are interested only in events for the profiling session
-                return;
             }
 
             string objectType = string.Empty;

@@ -79,26 +79,31 @@ OBJECT Page 50000 Performance Profiler
                                  PerformanceProfiler.Stop;
 
                                  ProfilerStarted := FALSE;
-                                 I := 1;
 
-                                 WHILE (PerformanceProfiler.CallTreeMoveNext) DO BEGIN
-                                   CLEAR(Rec);
-                                   Rec.INIT;
-                                   Rec.Id := I;
-                                   Rec."Session ID" := TargetSessionID;
-                                   Rec.Indentation := PerformanceProfiler.CallTreeCurrentStatementIndentation;
-                                   Rec."Object Type" := PerformanceProfiler.CallTreeCurrentStatementOwningObjectType;
-                                   Rec."Object ID" := PerformanceProfiler.CallTreeCurrentStatementOwningObjectId;
-                                   Rec."Line No" := PerformanceProfiler.CallTreeCurrentStatementLineNo;
-                                   Rec.Statement := PerformanceProfiler.CallTreeCurrentStatement;
-                                   Rec.Duration := PerformanceProfiler.CallTreeCurrentStatementDurationMs;
-                                   Rec.HitCount := PerformanceProfiler.CallTreeCurrentStatementHitCount;
-                                   Rec.INSERT;
-
-                                   I += 1;
-                                 END;
+                                 CopyEventsFromProfilerToTable;
 
                                  Rec.SETFILTER("Session ID", '=%1', TargetSessionID);
+                               END;
+                                }
+      { 20      ;1   ;Action    ;
+                      Name=Analyze ETL File;
+                      Promoted=Yes;
+                      Enabled=NOT ProfilerStarted;
+                      PromotedIsBig=Yes;
+                      Image=AnalysisView;
+                      PromotedCategory=Process;
+                      OnAction=VAR
+                                 ETLFileName@1000 : Text;
+                               BEGIN
+                                 ETLFileName := OpenFileDialog('Analyze ETL File', 'Trace Files (*.etl)|*.etl');
+
+                                 PerformanceProfiler.AnalyzeETLFile(ETLFileName);
+
+                                 CLEAR(Rec);
+                                 Rec.INIT;
+                                 Rec.DELETEALL;
+
+                                 CopyEventsFromProfilerToTable;
                                END;
                                 }
       { 10      ;1   ;Action    ;
@@ -115,7 +120,6 @@ OBJECT Page 50000 Performance Profiler
                                  FINDFIRST;
 
                                  REPEAT
-
                                    IF (Indentation = 0) THEN BEGIN
                                      IF (("Object Type" = "Object Type"::Codeunit) AND ("Object ID" = 1)) THEN
                                        codeUnit1Call := TRUE
@@ -125,7 +129,6 @@ OBJECT Page 50000 Performance Profiler
 
                                    IF (codeUnit1Call) THEN
                                     DELETE;
-
                                  UNTIL NEXT = 0;
                                END;
                                 }
@@ -207,7 +210,6 @@ OBJECT Page 50000 Performance Profiler
       ProgressDialog@1004 : Dialog;
       PerformanceProfiler@1000 : DotNet "'EtwPerformanceProfiler, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.EtwPerformanceProfiler.EtwPerformanceProfiler";
       ProfilerStarted@1001 : Boolean INDATASET;
-      I@1002 : Integer;
       TargetSessionID@1003 : Integer INDATASET;
       PleaseWaitCollectingData@1005 : TextConst 'ENU=Collecting performance data \\Please wait #1';
       Threshold@1006 : Integer;
@@ -224,6 +226,46 @@ OBJECT Page 50000 Performance Profiler
         SecondsToWait -= 1;
       END;
       ProgressDialog.CLOSE;
+    END;
+
+    PROCEDURE OpenFileDialog@1(WindowTitle@1000 : Text[50];FilterString@1002 : Text) : Text;
+    VAR
+      OpenFileDialog@1006 : DotNet "'System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.OpenFileDialog" RUNONCLIENT;
+      DialagResult@1003 : DotNet "'System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DialogResult" RUNONCLIENT;
+    BEGIN
+      OpenFileDialog := OpenFileDialog.OpenFileDialog;
+      OpenFileDialog.ShowReadOnly := FALSE;
+      OpenFileDialog.Title := WindowTitle;
+      OpenFileDialog.Filter := FilterString;
+
+      DialagResult := OpenFileDialog.ShowDialog;
+      IF DialagResult.CompareTo(DialagResult.OK) = 0 THEN
+        EXIT(OpenFileDialog.FileName);
+      EXIT('');
+    END;
+
+    LOCAL PROCEDURE CopyEventsFromProfilerToTable@12();
+    VAR
+      I@1000 : Integer;
+    BEGIN
+      I := 1;
+
+      WHILE (PerformanceProfiler.CallTreeMoveNext) DO BEGIN
+        CLEAR(Rec);
+        Rec.INIT;
+        Rec.Id := I;
+        Rec."Session ID" := TargetSessionID;
+        Rec.Indentation := PerformanceProfiler.CallTreeCurrentStatementIndentation;
+        Rec."Object Type" := PerformanceProfiler.CallTreeCurrentStatementOwningObjectType;
+        Rec."Object ID" := PerformanceProfiler.CallTreeCurrentStatementOwningObjectId;
+        Rec."Line No" := PerformanceProfiler.CallTreeCurrentStatementLineNo;
+        Rec.Statement := PerformanceProfiler.CallTreeCurrentStatement;
+        Rec.Duration := PerformanceProfiler.CallTreeCurrentStatementDurationMs;
+        Rec.HitCount := PerformanceProfiler.CallTreeCurrentStatementHitCount;
+        Rec.INSERT;
+
+        I += 1;
+      END;
     END;
 
     BEGIN

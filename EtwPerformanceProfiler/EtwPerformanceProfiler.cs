@@ -9,6 +9,7 @@
 namespace EtwPerformanceProfiler
 {
     using System;
+    using System.Linq;
     using System.Collections.Generic;
 
     /// <summary>
@@ -24,7 +25,7 @@ namespace EtwPerformanceProfiler
         /// <summary>
         /// The associated event processor.
         /// </summary>
-        private ProfilerEventProcessor profilerEventProcessor;
+        private DynamicProfilerEventProcessor dynamicProfilerEventProcessor;
 
         /// <summary>
         /// The call tree of all the aggregated method and SQL statement calls parsed from the ETW events
@@ -162,9 +163,9 @@ namespace EtwPerformanceProfiler
         /// <param name="threshold">The filter value in milliseconds. Values greater then this will only be shown.</param>
         public void Start(int sessionId, int threshold = 0)
         {
-            this.profilerEventProcessor = new ProfilerEventProcessor(sessionId, threshold);
+            this.dynamicProfilerEventProcessor = new DynamicProfilerEventProcessor(sessionId, threshold);
 
-            this.profilerEventProcessor.Start();
+            this.dynamicProfilerEventProcessor.Start();
         }
 
         /// <summary>
@@ -172,12 +173,27 @@ namespace EtwPerformanceProfiler
         /// </summary>
         public void Stop()
         {
-            this.profilerEventProcessor.Stop();
+            this.dynamicProfilerEventProcessor.Stop();
 
-            this.callTree = this.profilerEventProcessor.FlattenCallTree().GetEnumerator();
+            this.callTree = this.dynamicProfilerEventProcessor.FlattenCallTree().GetEnumerator();
 
             // We want to skip root element.
             this.callTree.MoveNext();
+        }
+
+        /// <summary>
+        /// Analyzes events from the ETL file and aggregates events from the multiple sessions.
+        /// </summary>
+        /// <param name="etlFilePath">ETL file to be analyzed.</param>
+        public void AnalyzeETLFile(string etlFilePath)
+        {
+            if (this.dynamicProfilerEventProcessor != null)
+            {
+                this.dynamicProfilerEventProcessor.Dispose();
+                this.dynamicProfilerEventProcessor = null;
+            }
+
+            this.callTree = Enumerable.Empty<AggregatedEventNode>().GetEnumerator();
         }
 
         /// <summary>
@@ -206,9 +222,9 @@ namespace EtwPerformanceProfiler
         {
             if (disposing)
             {
-                if (this.profilerEventProcessor != null)
+                if (this.dynamicProfilerEventProcessor != null)
                 {
-                    this.profilerEventProcessor.Dispose();
+                    this.dynamicProfilerEventProcessor.Dispose();
                 }
 
                 this.callTree = null;
