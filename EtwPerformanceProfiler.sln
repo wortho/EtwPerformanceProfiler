@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+Microsoft Visual Studio Solution File, Format Version 13.00
+# Visual Studio 2013
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EtwPerformanceProfiler", "EtwPerformanceProfiler\EtwPerformanceProfiler.csproj", "{614F624C-9661-4DA0-AE77-ADF69551B310}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EtwPerformanceProfilerTest", "EtwPerformanceProfilerTest\EtwPerformanceProfilerTest.csproj", "{0F78A3EA-9164-4478-BC95-BB186C1BE15C}"
