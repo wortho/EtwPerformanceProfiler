@@ -510,7 +510,7 @@ namespace EtwPerformanceProfilerTest
         [TestMethod]
         public void GetStatementFromTheCacheTest()
         {
-            var profilerEventProcessor = new DynamicProfilerEventProcessor(0);
+            var profilerEventProcessor = new ProfilerEventAggregator(0);
 
             const string Statement = "statement";
             profilerEventProcessor.GetStatementFromTheCache(Statement);
@@ -541,12 +541,12 @@ namespace EtwPerformanceProfilerTest
             {
                 currentProfilerEvent = profilerEvents[i];
 
-                DynamicProfilerEventProcessor.AddProfilerEventToAggregatedCallTree(previousProfilerEvent, currentProfilerEvent, ref currentAggregatedEventNode);
+                ProfilerEventAggregator.AddProfilerEventToAggregatedCallTree(previousProfilerEvent, currentProfilerEvent, ref currentAggregatedEventNode);
 
                 previousProfilerEvent = currentProfilerEvent;
             }
 
-            DynamicProfilerEventProcessor.AddProfilerEventToAggregatedCallTree(previousProfilerEvent, null, ref currentAggregatedEventNode);
+            ProfilerEventAggregator.AddProfilerEventToAggregatedCallTree(previousProfilerEvent, null, ref currentAggregatedEventNode);
 
             return aggregatedCallTree;
         }

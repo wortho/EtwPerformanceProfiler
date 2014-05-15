@@ -6,18 +6,18 @@
 // FITNESS FOR A PARTICULAR PURPOSE.
 //--------------------------------------------------------------------------
 
+using System;
+using System.Threading.Tasks;
+using Microsoft.Diagnostics.Tracing.Parsers;
+using Microsoft.Diagnostics.Tracing;
+using Microsoft.Diagnostics.Tracing.Session;
+
 namespace ETWPerformanceProfiler
 {
-    using System;
-    using System.Threading.Tasks;
-    using Microsoft.Diagnostics.Tracing.Parsers;
-    using Microsoft.Diagnostics.Tracing;
-    using Microsoft.Diagnostics.Tracing.Session;
-
     /// <summary>
     /// Use this class to dynamically listen to the ETW events.
     /// </summary>
-    internal class DynamicEtwEventProcessor : IDisposable
+    internal class EtwEventDynamicProcessor : IDisposable
     {
         /// <summary>
         /// The name for local trace event session.
@@ -61,11 +61,11 @@ namespace ETWPerformanceProfiler
         private bool isDisposed;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DynamicEtwEventProcessor"/> class.
+        /// Initializes a new instance of the <see cref="EtwEventDynamicProcessor"/> class.
         /// </summary>
         /// <param name="providerName">The name of the provider which events we are going to consume.</param>
         /// <param name="traceEventHandler">The callback which is called every time new event appears.</param>
-        internal DynamicEtwEventProcessor(string providerName, Action<TraceEvent> traceEventHandler)
+        internal EtwEventDynamicProcessor(string providerName, Action<TraceEvent> traceEventHandler)
         {
             this.providerName = providerName;
             this.providerGuid = TraceEventProviders.GetEventSourceGuidFromName(this.providerName);

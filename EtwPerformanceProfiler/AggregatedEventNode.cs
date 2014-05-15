@@ -6,11 +6,11 @@
 // FITNESS FOR A PARTICULAR PURPOSE.
 //--------------------------------------------------------------------------
 
+using System.Diagnostics;
+using System.Collections.Generic;
+
 namespace EtwPerformanceProfiler
 {
-    using System.Diagnostics;
-    using System.Collections.Generic;
-
     /// <summary>
     /// Represents the aggregated call tree.
     /// </summary>

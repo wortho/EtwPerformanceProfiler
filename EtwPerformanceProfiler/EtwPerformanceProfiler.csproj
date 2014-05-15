@@ -48,10 +48,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AggregatedEventNode.cs" />
-    <Compile Include="DynamicEtwEventProcessor.cs" />
+    <Compile Include="EtwEventDynamicProcessor.cs" />
     <Compile Include="EtwPerformanceProfiler.cs" />
     <Compile Include="ProfilerEvent.cs" />
-    <Compile Include="DynamicProfilerEventProcessor.cs" />
+    <Compile Include="ProfilerEventAggregator.cs" />
+    <Compile Include="ProfilerEventDynamicProcessor.cs" />
+    <Compile Include="ProfilerEventEtlFileProcessor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

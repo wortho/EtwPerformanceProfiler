@@ -6,12 +6,11 @@
 // FITNESS FOR A PARTICULAR PURPOSE.
 //--------------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+
 namespace EtwPerformanceProfiler
 {
-    using System;
-    using System.Linq;
-    using System.Collections.Generic;
-
     /// <summary>
     /// Represents the performance profiler class to be used in AL.
     /// </summary>
@@ -193,7 +192,12 @@ namespace EtwPerformanceProfiler
                 this.dynamicProfilerEventProcessor = null;
             }
 
-            this.callTree = Enumerable.Empty<AggregatedEventNode>().GetEnumerator();
+            using (ProfilerEventEtlFileProcessor profilerEventEtlFileProcessor = new ProfilerEventEtlFileProcessor())
+            {
+                profilerEventEtlFileProcessor.ProcessEtlFile(etlFilePath);
+
+                this.callTree = profilerEventEtlFileProcessor.FlattenCallTree().GetEnumerator();
+            }
         }
 
         /// <summary>
