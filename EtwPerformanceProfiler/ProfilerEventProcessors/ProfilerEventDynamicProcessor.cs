@@ -25,16 +25,19 @@ namespace EtwPerformanceProfiler
         private const string ProviderName = "Microsoft-DynamicsNAV-Server";
 
         /// <summary>
-        /// The associated event processor
-        /// </summary>
-        private EtwEventDynamicProcessor etwEventDynamicProcessor;
-
-        /// <summary>
         /// A flag specifying whether this instance has been disposed.
         /// </summary>
         private bool isDisposed;
 
-        private readonly ProfilerEventAggregator profilerEventAggregator;
+        /// <summary>
+        /// The associated event processor.
+        /// </summary>
+        private EtwEventDynamicProcessor etwEventDynamicProcessor;
+
+        /// <summary>
+        /// The associated event aggregator.
+        /// </summary>
+        private readonly SingleSessionEventAggregator singleSessionEventAggregator;
 
         #endregion
 
@@ -45,9 +48,9 @@ namespace EtwPerformanceProfiler
         /// <param name="threshold">The threshold value. The aggregated call tree will only show events greater than this.</param>
         internal DynamicProfilerEventProcessor(int sessionId, long threshold = 0)
         {
-            this.profilerEventAggregator = new ProfilerEventAggregator(sessionId, threshold);
+            this.singleSessionEventAggregator = new SingleSessionEventAggregator(sessionId, threshold);
 
-            this.etwEventDynamicProcessor = new EtwEventDynamicProcessor(ProviderName, this.profilerEventAggregator.AddEtwEventToAggregatedCallTree);
+            this.etwEventDynamicProcessor = new EtwEventDynamicProcessor(ProviderName, this.singleSessionEventAggregator.AddEtwEventToAggregatedCallTree);
         }
 
         /// <summary>
@@ -74,7 +77,7 @@ namespace EtwPerformanceProfiler
         /// </summary>
         private void Initialize()
         {
-            this.profilerEventAggregator.Initialize();
+            this.singleSessionEventAggregator.Initialize();
         }
 
         /// <summary>
@@ -89,7 +92,7 @@ namespace EtwPerformanceProfiler
                 this.etwEventDynamicProcessor = null;                
             }
 
-            this.profilerEventAggregator.FinishAggregation(buildAggregatedCallTree);
+            this.singleSessionEventAggregator.FinishAggregation(buildAggregatedCallTree);
         }
 
         /// <summary>
@@ -98,7 +101,7 @@ namespace EtwPerformanceProfiler
         /// <returns>Flatten call tree.</returns>
         internal IEnumerable<AggregatedEventNode> FlattenCallTree()
         {
-            return this.profilerEventAggregator.FlattenCallTree();
+            return this.singleSessionEventAggregator.FlattenCallTree();
         }
 
         /// <summary>

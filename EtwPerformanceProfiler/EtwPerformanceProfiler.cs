@@ -184,7 +184,8 @@ namespace EtwPerformanceProfiler
         /// Analyzes events from the ETL file and aggregates events from the multiple sessions.
         /// </summary>
         /// <param name="etlFilePath">ETL file to be analyzed.</param>
-        public void AnalyzeETLFile(string etlFilePath)
+        /// <param name="threshold">The filter value in milliseconds. Values greater then this will only be shown.</param>
+        public void AnalyzeETLFile(string etlFilePath, int threshold = 0)
         {
             if (this.dynamicProfilerEventProcessor != null)
             {
@@ -192,9 +193,9 @@ namespace EtwPerformanceProfiler
                 this.dynamicProfilerEventProcessor = null;
             }
 
-            using (ProfilerEventEtlFileProcessor profilerEventEtlFileProcessor = new ProfilerEventEtlFileProcessor())
+            using (ProfilerEventEtlFileProcessor profilerEventEtlFileProcessor = new ProfilerEventEtlFileProcessor(etlFilePath, threshold))
             {
-                profilerEventEtlFileProcessor.ProcessEtlFile(etlFilePath);
+                profilerEventEtlFileProcessor.ProcessEtlFile();
 
                 this.callTree = profilerEventEtlFileProcessor.FlattenCallTree().GetEnumerator();
             }

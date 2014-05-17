@@ -13,180 +13,10 @@ namespace EtwPerformanceProfiler
 {
     /// <summary>
     /// This class is responsible for aggregating events and building the call tree.
+    /// it processes events from single session. 
     /// </summary>
-    internal class ProfilerEventAggregator
+    internal class SingleSessionEventAggregator
     {
-        #region SQL events defeined by the Nav server
-        /// <summary>
-        /// The SQL execute scalar start event.
-        /// </summary>
-        internal const int SqlExecuteScalarStart = 1;
-        
-        /// <summary>
-        /// The SQL execute scalar stop event.
-        /// </summary>
-        internal const int SqlExecuteScalarStop = 2;
-        
-        /// <summary>
-        /// The SQL execute non query start event.
-        /// </summary>
-        internal const int SqlExecuteNonQueryStart = 3;
-        
-        /// <summary>
-        /// The SQL execute non query stop event.
-        /// </summary>
-        internal const int SqlExecuteNonQueryStop = 4;
-        
-        /// <summary>
-        /// The event id for the SQL execute reader start event.
-        /// </summary>
-        internal const int SqlExecuteReaderStart = 5;
-        
-        /// <summary>
-        /// The event id for the SQL execute reader stop event.
-        /// </summary>
-        internal const int SqlExecuteReaderStop = 6;
-        
-        /// <summary>
-        /// The event id for the SQL read next result start event.
-        /// </summary>
-        internal const int SqlReadNextResultStart = 7;
-        
-        /// <summary>
-        /// The event id for the SQL read next result stop event
-        /// </summary>
-        internal const int SqlReadNextResultStop = 8;
-        
-        /// <summary>
-        /// The event id for the SQL read next row start event
-        /// </summary>
-        internal const int SqlReadNextRowStart = 9;
-        
-        /// <summary>
-        /// The event id for the SQL read next row stop event
-        /// </summary>
-        internal const int SqlReadNextRowStop = 10;
-        
-        /// <summary>
-        /// The event id for the SQL begin transaction start event
-        /// </summary>
-        internal const int SqlBeginTransactionStart = 11;
-        
-        /// <summary>
-        /// The event id for the SQL begin transaction stop event.
-        /// </summary>
-        internal const int SqlBeginTransactionStop = 12;
-
-        /// <summary>
-        /// The event id for the SQL prepare start event.
-        /// </summary>
-        internal const int SqlPrepareStart = 13;
-        
-        /// <summary>
-        /// The event id for the SQL prepare stop event event.
-        /// </summary>
-        internal const int SqlPrepareStop = 14;
-        
-        /// <summary>
-        /// The event id for the SQL open connection start event.
-        /// </summary>
-        internal const int SqlOpenConnectionStart = 15;
-
-        /// <summary>
-        /// The event id for the SQL open connection stop event.
-        /// </summary>
-        internal const int SqlOpenConnectionStop = 16;
-
-        /// <summary>
-        /// The event id for the SQL commit start event.
-        /// </summary>
-        internal const int SqlCommitStart = 17;
-        
-        /// <summary>
-        /// The event id for the SQL commit stop event
-        /// </summary>
-        internal const int SqlCommitStop = 18;
-        
-        /// <summary>
-        /// The event id for the SQL rollback start event.
-        /// </summary>
-        internal const int SqlRollbackStart = 19;
-        
-        /// <summary>
-        /// The event id for the SQL rollback stop event
-        /// </summary>
-        internal const int SqlRollbackStop = 20;
-        #endregion
-
-        #region AL events defined by the Nav server.
-        /// <summary>
-        /// The event id for the AL method start event.
-        /// </summary>
-        internal const int ALFunctionStart = 400;
-
-        /// <summary>
-        /// An event id for AL method stop event.
-        /// </summary>
-        internal const int ALFunctionStop = 401;
-
-        /// <summary>
-        /// An event id for failed AL methods.
-        /// </summary>
-        internal const int AFunctionFailed = 402;
-
-        /// <summary>
-        /// The event id for the AL Statement event.
-        /// </summary>
-        internal const int ALFunctionStatement = 403;
-        #endregion
-
-        #region Payload indexes
-        /// <summary>
-        /// The index of the tenant id payload parameter as defined in the ETW manifest.
-        /// </summary>
-        private const int TenantIdPayloadIndex = 0;
-
-        /// <summary>
-        /// The index of the session id payload parameter as defined in the ETW manifest.
-        /// </summary>
-        private const int SessionIdPayloadIndex = 1;
-
-        /// <summary>
-        /// The index of the user name payload parameter as defined in the ETW manifest.
-        /// </summary>
-        private const int UserNamePayloadIndex = 2;
-
-        /// <summary>
-        /// The index of the SQL statement payload parameter as defined in the ETW manifest.
-        /// </summary>
-        private const int SqlStatementPayloadIndex = 3;
-
-        /// <summary>
-        /// The index of the object type payload parameter as defined in the ETW manifest.
-        /// </summary>
-        private const int ObjectTypePayloadIndex = 3;
-
-        /// <summary>
-        /// The index of the object id payload parameter as defined in the ETW manifest.
-        /// </summary>
-        private const int ObjectIdPayloadIndex = 4;
-
-        /// <summary>
-        /// The index of the function name payload parameter as defined in the ETW manifest.
-        /// </summary>
-        private const int ALFunctionNamePayloadIndex = 5;
-
-        /// <summary>
-        /// The index of the line number payload parameter as defined in the ETW manifest.
-        /// </summary>
-        private const int LineNoPayloadIndex = 6;
-
-        /// <summary>
-        /// The index of the statement payload parameter as defined in the ETW manifest.
-        /// </summary>
-        private const int ALStatementPayloadIndex = 7;
-        #endregion
-
         #region Private members
       
         /// <summary>
@@ -224,11 +54,11 @@ namespace EtwPerformanceProfiler
         #endregion
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ProfilerEventAggregator"/> class.
+        /// Creates a new instance of the <see cref="SingleSessionEventAggregator"/> class.
         /// </summary>
         /// <param name="sessionId">The session id.</param>
         /// <param name="threshold">The threshold value. The aggregated call tree will only show events greater than this.</param>
-        internal ProfilerEventAggregator(int sessionId, long threshold = 0)
+        internal SingleSessionEventAggregator(int sessionId, long threshold = 0)
         {
             this.profilingSessionId = sessionId;
 
@@ -280,7 +110,7 @@ namespace EtwPerformanceProfiler
         /// <param name="traceEvent">The trace event.</param>
         internal void AddEtwEventToAggregatedCallTree(TraceEvent traceEvent)
         {
-            int sessionId = (int)traceEvent.PayloadValue(SessionIdPayloadIndex);
+            int sessionId = (int)traceEvent.PayloadValue(NavEventsPayloadIndexes.SessionIdPayloadIndex);
 
             if (sessionId != this.profilingSessionId)
             {
@@ -292,40 +122,40 @@ namespace EtwPerformanceProfiler
             EventType type;
             switch ((int)traceEvent.ID)
             {
-                case ALFunctionStart:
-                    statementLoadIndex = ALFunctionNamePayloadIndex;
+                case NavEvents.ALFunctionStart:
+                    statementLoadIndex = NavEventsPayloadIndexes.ALFunctionNamePayloadIndex;
                     type = EventType.StartMethod;
                     break;
-                case ALFunctionStop:
-                    statementLoadIndex = ALFunctionNamePayloadIndex;
+                case NavEvents.ALFunctionStop:
+                    statementLoadIndex = NavEventsPayloadIndexes.ALFunctionNamePayloadIndex;
                     type = EventType.StopMethod;
                     break;
-                case ALFunctionStatement:
-                    statementLoadIndex = ALStatementPayloadIndex;
+                case NavEvents.ALFunctionStatement:
+                    statementLoadIndex = NavEventsPayloadIndexes.ALStatementPayloadIndex;
                     type = EventType.Statement;
                     break;
-                case SqlExecuteScalarStart:
-                    statementLoadIndex = SqlStatementPayloadIndex;
+                case NavEvents.SqlExecuteScalarStart:
+                    statementLoadIndex = NavEventsPayloadIndexes.SqlStatementPayloadIndex;
                     type = EventType.StartMethod;
                     break;
-                case SqlExecuteScalarStop:
-                    statementLoadIndex = SqlStatementPayloadIndex;
+                case NavEvents.SqlExecuteScalarStop:
+                    statementLoadIndex = NavEventsPayloadIndexes.SqlStatementPayloadIndex;
                     type = EventType.StopMethod;
                     break;
-                case SqlExecuteNonQueryStart:
-                    statementLoadIndex = SqlStatementPayloadIndex;
+                case NavEvents.SqlExecuteNonQueryStart:
+                    statementLoadIndex = NavEventsPayloadIndexes.SqlStatementPayloadIndex;
                     type = EventType.StartMethod;
                     break;
-                case SqlExecuteNonQueryStop:
-                    statementLoadIndex = SqlStatementPayloadIndex;
+                case NavEvents.SqlExecuteNonQueryStop:
+                    statementLoadIndex = NavEventsPayloadIndexes.SqlStatementPayloadIndex;
                     type = EventType.StopMethod;
                     break;
-                case SqlExecuteReaderStart:
-                    statementLoadIndex = SqlStatementPayloadIndex;
+                case NavEvents.SqlExecuteReaderStart:
+                    statementLoadIndex = NavEventsPayloadIndexes.SqlStatementPayloadIndex;
                     type = EventType.StartMethod;
                     break;
-                case SqlExecuteReaderStop:
-                    statementLoadIndex = SqlStatementPayloadIndex;
+                case NavEvents.SqlExecuteReaderStop:
+                    statementLoadIndex = NavEventsPayloadIndexes.SqlStatementPayloadIndex;
                     type = EventType.StopMethod;
                     break;
                 default:
@@ -333,21 +163,21 @@ namespace EtwPerformanceProfiler
             }
 
             string objectType = string.Empty;
-            int objectId = 0;            
-            if (statementLoadIndex != SqlStatementPayloadIndex)
+            int objectId = 0;
+            if (statementLoadIndex != NavEventsPayloadIndexes.SqlStatementPayloadIndex)
             {
                 // We don't have object type and id for the SQL events.
 
-                objectType = (string)traceEvent.PayloadValue(ObjectTypePayloadIndex);
-                objectId = (int)traceEvent.PayloadValue(ObjectIdPayloadIndex);
+                objectType = (string)traceEvent.PayloadValue(NavEventsPayloadIndexes.ObjectTypePayloadIndex);
+                objectId = (int)traceEvent.PayloadValue(NavEventsPayloadIndexes.ObjectIdPayloadIndex);
             }
 
             int lineNo = 0;
-            if ((int)traceEvent.ID == ALFunctionStatement)
+            if ((int)traceEvent.ID == NavEvents.ALFunctionStatement)
             {
                 // Only statements have line numbers.
 
-                lineNo = (int)traceEvent.PayloadValue(LineNoPayloadIndex);
+                lineNo = (int)traceEvent.PayloadValue(NavEventsPayloadIndexes.LineNoPayloadIndex);
             }
 
             string statement = (string)traceEvent.PayloadValue(statementLoadIndex);

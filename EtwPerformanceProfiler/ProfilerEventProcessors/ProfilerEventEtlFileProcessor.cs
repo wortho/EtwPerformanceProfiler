@@ -8,8 +8,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.Diagnostics.Tracing;
-using Microsoft.Diagnostics.Tracing.Parsers;
 
 namespace EtwPerformanceProfiler
 {
@@ -23,30 +21,36 @@ namespace EtwPerformanceProfiler
         /// </summary>
         private bool isDisposed;
 
-        internal void ProcessEtlFile(string etlFilePath)
+        /// <summary>
+        /// The associated event processor.
+        /// </summary>
+        private readonly EtwEventFileProcessor etwEventFileProcessor;
+
+        /// <summary>
+        /// The associated event aggregator.
+        /// </summary>
+        private readonly MultipleSessionsEventAggregator multipleSessionsEventAggregator;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="etlFilePath"></param>
+        /// <param name="threshold">The filter value in milliseconds. Values greater then this will only be shown.</param>
+        public ProfilerEventEtlFileProcessor(string etlFilePath, int threshold)
         {
-            // Open the file
-            using (var source = new ETWTraceEventSource(etlFilePath))
-            {
-                // DynamicTraceEventParser knows about EventSourceEvents
-                var parser = new DynamicTraceEventParser(source);
+            this.multipleSessionsEventAggregator = new MultipleSessionsEventAggregator(threshold);
 
-                // Set up a callback for every event that prints the event
-                parser.All += this.AddEtwEventToProfilerEventAggregator;
-
-                // Read the file, processing the callbacks.  
-                source.Process();
-
-                // Close the file.
-            }
+            this.etwEventFileProcessor = new EtwEventFileProcessor(etlFilePath, this.multipleSessionsEventAggregator.AddEtwEventToProfilerEventAggregator);
         }
 
         /// <summary>
-        /// The callback which is called every time new event appears.
+        /// Analyzes events from the ETL file and aggregates events from the multiple sessions.
         /// </summary>
-        /// <param name="traceEvent">The trace event.</param>
-        internal void AddEtwEventToProfilerEventAggregator(TraceEvent traceEvent)
+        internal void ProcessEtlFile()
         {
+            this.etwEventFileProcessor.ProcessEtlFile();
+
+            this.multipleSessionsEventAggregator.FinishAggregation();
         }
 
         /// <summary>
@@ -55,7 +59,7 @@ namespace EtwPerformanceProfiler
         /// <returns>Flatten call tree.</returns>
         internal IEnumerable<AggregatedEventNode> FlattenCallTree()
         {
-            throw new NotImplementedException();
+            return this.multipleSessionsEventAggregator.FlattenCallTree();
         }
 
         /// <summary>

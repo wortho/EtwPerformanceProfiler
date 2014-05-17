@@ -34,7 +34,7 @@ namespace EtwPerformanceProfiler
         /// <summary>
         /// Gets or sets the name of the Statement.
         /// </summary>
-        internal string StatementName { get; private set; }
+        internal string StatementName { get; set; }
 
         /// <summary>
         /// Gets or sets the duration in 100ns.
@@ -75,7 +75,7 @@ namespace EtwPerformanceProfiler
         /// <summary>
         /// Depth of the current element in the tree.
         /// </summary>
-        internal int Depth { get; private set; }
+        internal int Depth { get; set; }
              
         /// <summary>
         /// Initializes a new instance of the <see cref="AggregatedEventNode"/> class.

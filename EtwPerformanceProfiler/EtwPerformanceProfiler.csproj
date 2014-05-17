@@ -47,13 +47,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AggregatedEventNode.cs" />
-    <Compile Include="EtwEventDynamicProcessor.cs" />
+    <Compile Include="EtwEventProcessors\EtwEventFileProcessor.cs" />
+    <Compile Include="ProfilerEventAggregators\MultipleSessionsEventAggregator.cs" />
+    <Compile Include="ProfilerEventAggregators\AggregatedEventNode.cs" />
+    <Compile Include="EtwEventProcessors\EtwEventDynamicProcessor.cs" />
     <Compile Include="EtwPerformanceProfiler.cs" />
-    <Compile Include="ProfilerEvent.cs" />
-    <Compile Include="ProfilerEventAggregator.cs" />
-    <Compile Include="ProfilerEventDynamicProcessor.cs" />
-    <Compile Include="ProfilerEventEtlFileProcessor.cs" />
+    <Compile Include="EtwEventProcessors\NavEvents.cs" />
+    <Compile Include="EtwEventProcessors\NavEventsPayloadIndexes.cs" />
+    <Compile Include="ProfilerEventAggregators\ProfilerEvent.cs" />
+    <Compile Include="ProfilerEventAggregators\SingleSessionEventAggregator.cs" />
+    <Compile Include="ProfilerEventProcessors\ProfilerEventDynamicProcessor.cs" />
+    <Compile Include="ProfilerEventProcessors\ProfilerEventEtlFileProcessor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
