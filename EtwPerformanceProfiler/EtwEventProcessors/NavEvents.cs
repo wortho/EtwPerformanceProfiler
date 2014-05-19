@@ -136,5 +136,17 @@ namespace EtwPerformanceProfiler
         /// </summary>
         internal const int ALFunctionStatement = 403;
         #endregion
+
+        #region Session events
+        /// <summary>
+        /// The session opened event.
+        /// </summary>
+        public const int SessionOpened = 500;
+
+        /// <summary>
+        /// The session closed event.
+        /// </summary>
+        public const int SessionClosed = 501;
+        #endregion
     }
 }

@@ -26,7 +26,12 @@ namespace EtwPerformanceProfiler
         /// <summary>
         /// Statement.
         /// </summary>
-        Statement
+        Statement,
+
+        /// <summary>
+        /// Not an event.
+        /// </summary>
+        None
     }
 
     /// <summary>
@@ -67,7 +72,7 @@ namespace EtwPerformanceProfiler
         /// <summary>
         /// Returns true if this is the Sql event.
         /// </summary>
-        internal bool IsSqlEvent
+        internal bool IsNoneAlEvent
         {
             get { return this.ObjectId == 0; }
         }

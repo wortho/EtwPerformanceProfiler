@@ -30,6 +30,11 @@ namespace EtwPerformanceProfiler
         internal const int UserNamePayloadIndex = 2;
 
         /// <summary>
+        /// The index of the connection type payload parameter as defined in the ETW manifest.
+        /// </summary>
+        internal const int ConnectionTypePayloadIndex = 3;
+
+        /// <summary>
         /// The index of the SQL statement payload parameter as defined in the ETW manifest.
         /// </summary>
         internal const int SqlStatementPayloadIndex = 3;

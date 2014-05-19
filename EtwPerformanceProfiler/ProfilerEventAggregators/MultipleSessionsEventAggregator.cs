@@ -15,7 +15,7 @@ namespace EtwPerformanceProfiler
     /// This class is responsible for aggregating events and building the call tree.
     /// It processes event from different sessions.
     /// </summary>
-    internal class MultipleSessionsEventAggregator
+    internal class MultipleSessionsEventAggregator : EventAggregator
     {
         private readonly Dictionary<int, SingleSessionEventAggregator> sessionAggregators = new Dictionary<int, SingleSessionEventAggregator>();
 
@@ -39,7 +39,15 @@ namespace EtwPerformanceProfiler
         /// <param name="traceEvent">The trace event.</param>
         internal void AddEtwEventToProfilerEventAggregator(TraceEvent traceEvent)
         {
-            int sessionId = (int)traceEvent.PayloadValue(NavEventsPayloadIndexes.SessionIdPayloadIndex);
+            int statementIndex;
+            EventType eventType;
+            if (!GetStatementIndexAndEventType(traceEvent, out statementIndex, out eventType))
+            {
+                return;
+            }
+
+            // We can check sessions id only here after we filtered out non Nav events.
+            int sessionId = GetSessionId(traceEvent);
 
             SingleSessionEventAggregator sessionAggregator;
             if (!this.sessionAggregators.TryGetValue(sessionId, out sessionAggregator))
@@ -49,7 +57,7 @@ namespace EtwPerformanceProfiler
                 this.sessionAggregators[sessionId] = sessionAggregator;
             }
 
-            sessionAggregator.AddEtwEventToAggregatedCallTree(traceEvent);
+            sessionAggregator.AddEtwEventToAggregatedCallTree(traceEvent, sessionId, statementIndex, eventType);
         }
 
         /// <summary>
@@ -72,13 +80,6 @@ namespace EtwPerformanceProfiler
         {
             foreach (var singleSessionEventAggregator in this.sessionAggregators)
             {
-                AggregatedEventNode rootNodeForCurrentSession = new AggregatedEventNode
-                {
-                    StatementName = "Session " + singleSessionEventAggregator.Key
-                };
-
-                yield return rootNodeForCurrentSession;
-
                 foreach (var sessionAggregatedEventNode in singleSessionEventAggregator.Value.FlattenCallTree())
                 {
                     sessionAggregatedEventNode.Depth += 1;

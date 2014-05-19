@@ -15,7 +15,7 @@ namespace EtwPerformanceProfiler
     /// This class is responsible for aggregating events and building the call tree.
     /// it processes events from single session. 
     /// </summary>
-    internal class SingleSessionEventAggregator
+    internal class SingleSessionEventAggregator : EventAggregator
     {
         #region Private members
       
@@ -72,7 +72,11 @@ namespace EtwPerformanceProfiler
         /// </summary>
         internal void Initialize()
         {
-            this.aggregatedCallTree = new AggregatedEventNode();
+            this.aggregatedCallTree = new AggregatedEventNode()
+            {
+                StatementName = "Session " + this.profilingSessionId
+            };
+
             this.currentAggregatedEventNode = aggregatedCallTree;
 
             this.previousProfilerEvent = null;
@@ -110,89 +114,59 @@ namespace EtwPerformanceProfiler
         /// <param name="traceEvent">The trace event.</param>
         internal void AddEtwEventToAggregatedCallTree(TraceEvent traceEvent)
         {
-            int sessionId = (int)traceEvent.PayloadValue(NavEventsPayloadIndexes.SessionIdPayloadIndex);
+            int statementIndex;
+            EventType eventType;
+            if (!GetStatementIndexAndEventType(traceEvent, out statementIndex, out eventType))
+            {
+                return;
+            }
 
+            // We can check sessions id only here after we filtered out non Nav events.
+            int sessionId = GetSessionId(traceEvent);
+
+            this.AddEtwEventToAggregatedCallTree(traceEvent, sessionId, statementIndex, eventType);
+        }
+
+        internal void AddEtwEventToAggregatedCallTree(TraceEvent traceEvent, int sessionId, int statementIndex, EventType eventType)
+        {
             if (sessionId != this.profilingSessionId)
             {
                 // we are interested only in events for the profiling session
                 return;
             }
 
-            int statementLoadIndex;
-            EventType type;
-            switch ((int)traceEvent.ID)
-            {
-                case NavEvents.ALFunctionStart:
-                    statementLoadIndex = NavEventsPayloadIndexes.ALFunctionNamePayloadIndex;
-                    type = EventType.StartMethod;
-                    break;
-                case NavEvents.ALFunctionStop:
-                    statementLoadIndex = NavEventsPayloadIndexes.ALFunctionNamePayloadIndex;
-                    type = EventType.StopMethod;
-                    break;
-                case NavEvents.ALFunctionStatement:
-                    statementLoadIndex = NavEventsPayloadIndexes.ALStatementPayloadIndex;
-                    type = EventType.Statement;
-                    break;
-                case NavEvents.SqlExecuteScalarStart:
-                    statementLoadIndex = NavEventsPayloadIndexes.SqlStatementPayloadIndex;
-                    type = EventType.StartMethod;
-                    break;
-                case NavEvents.SqlExecuteScalarStop:
-                    statementLoadIndex = NavEventsPayloadIndexes.SqlStatementPayloadIndex;
-                    type = EventType.StopMethod;
-                    break;
-                case NavEvents.SqlExecuteNonQueryStart:
-                    statementLoadIndex = NavEventsPayloadIndexes.SqlStatementPayloadIndex;
-                    type = EventType.StartMethod;
-                    break;
-                case NavEvents.SqlExecuteNonQueryStop:
-                    statementLoadIndex = NavEventsPayloadIndexes.SqlStatementPayloadIndex;
-                    type = EventType.StopMethod;
-                    break;
-                case NavEvents.SqlExecuteReaderStart:
-                    statementLoadIndex = NavEventsPayloadIndexes.SqlStatementPayloadIndex;
-                    type = EventType.StartMethod;
-                    break;
-                case NavEvents.SqlExecuteReaderStop:
-                    statementLoadIndex = NavEventsPayloadIndexes.SqlStatementPayloadIndex;
-                    type = EventType.StopMethod;
-                    break;
-                default:
-                    return;
-            }
-
             string objectType = string.Empty;
             int objectId = 0;
-            if (statementLoadIndex != NavEventsPayloadIndexes.SqlStatementPayloadIndex)
+            if (statementIndex != NavEventsPayloadIndexes.SqlStatementPayloadIndex &&
+                statementIndex != NavEventsPayloadIndexes.ConnectionTypePayloadIndex)
             {
                 // We don't have object type and id for the SQL events.
 
-                objectType = (string)traceEvent.PayloadValue(NavEventsPayloadIndexes.ObjectTypePayloadIndex);
-                objectId = (int)traceEvent.PayloadValue(NavEventsPayloadIndexes.ObjectIdPayloadIndex);
+                objectType = (string) traceEvent.PayloadValue(NavEventsPayloadIndexes.ObjectTypePayloadIndex);
+                objectId = (int) traceEvent.PayloadValue(NavEventsPayloadIndexes.ObjectIdPayloadIndex);
             }
 
             int lineNo = 0;
-            if ((int)traceEvent.ID == NavEvents.ALFunctionStatement)
+            if ((int) traceEvent.ID == NavEvents.ALFunctionStatement)
             {
                 // Only statements have line numbers.
 
-                lineNo = (int)traceEvent.PayloadValue(NavEventsPayloadIndexes.LineNoPayloadIndex);
+                lineNo = (int) traceEvent.PayloadValue(NavEventsPayloadIndexes.LineNoPayloadIndex);
             }
 
-            string statement = (string)traceEvent.PayloadValue(statementLoadIndex);
+            string statement = (string) traceEvent.PayloadValue(statementIndex);
 
             statement = this.GetStatementFromTheCache(statement);
 
             ProfilerEvent? currentProfilerEvent = new ProfilerEvent
-                {
-                    Type = type,
-                    ObjectType = objectType,
-                    ObjectId = objectId,
-                    LineNo = lineNo,
-                    StatementName = statement,
-                    TimeStampRelativeMSec = traceEvent.TimeStampRelativeMSec
-                };
+            {
+                Type = eventType,
+                ObjectType = objectType,
+                ObjectId = objectId,
+                LineNo = lineNo,
+                StatementName = statement,
+                TimeStampRelativeMSec = traceEvent.TimeStampRelativeMSec
+            };
 
             AddProfilerEventToAggregatedCallTree(this.previousProfilerEvent, currentProfilerEvent, ref this.currentAggregatedEventNode);
 
@@ -237,11 +211,10 @@ namespace EtwPerformanceProfiler
                 // and pop it from the statement call stack. 
 
                 if (currentAggregatedEventNode.Parent != null && // We should never pop root event. This can happen if we miss some events in the begining.
-                    (previousProfilerEvent.Value.IsSqlEvent || // Always close sql events.
-                     !currentProfilerEvent.HasValue || // Previous event is the last one.
-                     currentProfilerEvent.Value.IsSqlEvent || // The current event is sql. It comes after stop event. Need to pop the the current aggregated node.
-                     currentProfilerEvent.Value.Type != EventType.StartMethod || // The current event is not the start. If it is start event when we are in the nested call. 
-                     currentAggregatedEventNode.OriginalType == EventType.StartMethod))
+                    (!currentProfilerEvent.HasValue || // Previous event is the last one.
+                     (currentProfilerEvent.Value.IsNoneAlEvent && !previousProfilerEvent.Value.IsNoneAlEvent) || // The current event is sql. It comes after stop event. Need to pop the the current aggregated node. Only close AL events.
+                     currentProfilerEvent.Value.Type != EventType.StartMethod || // The current event is not the start. If it is start event when we are in the nested call. One statement several methods.
+                     currentAggregatedEventNode.OriginalType == EventType.StartMethod)) // ??????
                 {
                     currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(previousProfilerEvent.Value.TimeStampRelativeMSec);
                 }
@@ -252,6 +225,7 @@ namespace EtwPerformanceProfiler
                 return;
             }
 
+            // Statement.
             if (currentProfilerEvent.Value.Type == EventType.Statement)
             {
                 // If there are two consequent statements then first we need to calculate the duration for the previous
@@ -267,10 +241,13 @@ namespace EtwPerformanceProfiler
                 return;
             }
 
+            // Method start.
             if (currentProfilerEvent.Value.Type == EventType.StartMethod)
             {
                 // If it is the root method or if it is SQL event we also push start event into the stack.
-                if (currentAggregatedEventNode.Parent == null || currentProfilerEvent.Value.IsSqlEvent)
+                if (currentAggregatedEventNode.Parent == null || 
+                    currentProfilerEvent.Value.IsNoneAlEvent || 
+                    (previousProfilerEvent.HasValue && previousProfilerEvent.Value.IsNoneAlEvent))
                 {
                     currentAggregatedEventNode = currentAggregatedEventNode.PushEventIntoCallStack(currentProfilerEvent.Value);
                 }
@@ -282,12 +259,14 @@ namespace EtwPerformanceProfiler
 
             // Method stop.
             if (currentProfilerEvent.Value.Type == EventType.StopMethod)
-            {
-                // First need to calculate duration for the previous statement
-                // and pop it from the statement call stack. 
-                if (currentAggregatedEventNode.Parent != null && currentAggregatedEventNode.EvaluatedType == EventType.Statement)
+            { 
+                if (currentAggregatedEventNode.Parent != null)
                 {
-                    currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(currentProfilerEvent.Value.TimeStampRelativeMSec);
+                    if (currentAggregatedEventNode.EvaluatedType == EventType.Statement || // We need to calculate duration for the previous statement and pop it from the statement call stack.
+                        currentProfilerEvent.Value.IsNoneAlEvent) // Always close sql events.
+                    {
+                        currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(currentProfilerEvent.Value.TimeStampRelativeMSec);
+                    }
                 }
             }
         }
