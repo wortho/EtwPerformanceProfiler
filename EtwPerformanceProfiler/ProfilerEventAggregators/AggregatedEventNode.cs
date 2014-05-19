@@ -76,6 +76,22 @@ namespace EtwPerformanceProfiler
         /// Depth of the current element in the tree.
         /// </summary>
         internal int Depth { get; set; }
+
+        /// <summary>
+        /// Returns true if this is the none AL event.
+        /// </summary>
+        internal bool IsNoneAlEvent
+        {
+            get { return !this.IsAlEvent; }
+        }
+
+        /// <summary>
+        /// Returns true if this is the AL event.
+        /// </summary>
+        internal bool IsAlEvent
+        {
+            get { return this.ObjectId != 0; }
+        }
              
         /// <summary>
         /// Initializes a new instance of the <see cref="AggregatedEventNode"/> class.

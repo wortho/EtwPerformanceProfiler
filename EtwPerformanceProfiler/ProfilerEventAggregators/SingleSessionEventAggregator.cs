@@ -211,10 +211,14 @@ namespace EtwPerformanceProfiler
                 // and pop it from the statement call stack. 
 
                 if (currentAggregatedEventNode.Parent != null && // We should never pop root event. This can happen if we miss some events in the begining.
-                    (!currentProfilerEvent.HasValue || // Previous event is the last one.
-                     (currentProfilerEvent.Value.IsNoneAlEvent && !previousProfilerEvent.Value.IsNoneAlEvent) || // The current event is sql. It comes after stop event. Need to pop the the current aggregated node. Only close AL events.
-                     currentProfilerEvent.Value.Type != EventType.StartMethod || // The current event is not the start. If it is start event when we are in the nested call. One statement several methods.
-                     currentAggregatedEventNode.OriginalType == EventType.StartMethod)) // ??????
+                    // Previous event is the last one.
+                    (!currentProfilerEvent.HasValue ||
+                    // The current event is none AL event. It comes after stop event. Need to pop the the current aggregated node. Only close AL events.
+                    (currentProfilerEvent.Value.IsNonAlEvent && previousProfilerEvent.Value.IsAlEvent) ||
+                    // The current event is not the start. If it is start event when we are in the nested call. One statement several methods.
+                    currentProfilerEvent.Value.Type != EventType.StartMethod ||
+                    // If we have two consequent root method calls
+                    (currentAggregatedEventNode.OriginalType == EventType.StartMethod && currentAggregatedEventNode.IsAlEvent)))
                 {
                     currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(previousProfilerEvent.Value.TimeStampRelativeMSec);
                 }
@@ -246,8 +250,8 @@ namespace EtwPerformanceProfiler
             {
                 // If it is the root method or if it is SQL event we also push start event into the stack.
                 if (currentAggregatedEventNode.Parent == null || 
-                    currentProfilerEvent.Value.IsNoneAlEvent || 
-                    (previousProfilerEvent.HasValue && previousProfilerEvent.Value.IsNoneAlEvent))
+                    currentProfilerEvent.Value.IsNonAlEvent || 
+                    (previousProfilerEvent.HasValue && previousProfilerEvent.Value.IsNonAlEvent))
                 {
                     currentAggregatedEventNode = currentAggregatedEventNode.PushEventIntoCallStack(currentProfilerEvent.Value);
                 }
@@ -263,7 +267,7 @@ namespace EtwPerformanceProfiler
                 if (currentAggregatedEventNode.Parent != null)
                 {
                     if (currentAggregatedEventNode.EvaluatedType == EventType.Statement || // We need to calculate duration for the previous statement and pop it from the statement call stack.
-                        currentProfilerEvent.Value.IsNoneAlEvent) // Always close sql events.
+                        currentProfilerEvent.Value.IsNonAlEvent) // Always close sql events.
                     {
                         currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(currentProfilerEvent.Value.TimeStampRelativeMSec);
                     }

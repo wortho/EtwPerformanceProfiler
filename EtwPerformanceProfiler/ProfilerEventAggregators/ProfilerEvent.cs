@@ -70,11 +70,19 @@ namespace EtwPerformanceProfiler
         internal double TimeStampRelativeMSec { get; set; }
 
         /// <summary>
-        /// Returns true if this is the Sql event.
+        /// Returns true if this is the none AL event.
         /// </summary>
-        internal bool IsNoneAlEvent
+        internal bool IsNonAlEvent
         {
-            get { return this.ObjectId == 0; }
+            get { return !this.IsAlEvent; }
+        }
+
+        /// <summary>
+        /// Returns true if this is the AL event.
+        /// </summary>
+        internal bool IsAlEvent
+        {
+            get { return this.ObjectId != 0; }
         }
 
         /// <summary>

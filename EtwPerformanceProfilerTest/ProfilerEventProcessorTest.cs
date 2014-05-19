@@ -162,6 +162,77 @@ namespace EtwPerformanceProfilerTest
 
         /// <summary>
         /// 
+        /// OpenConnection - Start
+        /// SQL QUERY1
+        /// SQL QUERY2
+        /// OpenConnection - Stop
+        /// 
+        /// </summary>
+        [TestMethod]
+        public void BuildAggregatedCallTreeOpenConnectionTwoNestedSQLQueriesTest()
+        {
+            List<ProfilerEvent> profilerEventList = new List<ProfilerEvent>
+                {
+                    new ProfilerEvent
+                    {
+                        ObjectId = 0,
+                        Type = EventType.StartMethod,
+                        StatementName = "OpenConnection"
+                    }, // 0
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 0,
+                        Type = EventType.StartMethod,
+                        StatementName = "SQL1"
+                    }, // 1
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 0,
+                        Type = EventType.StopMethod,
+                        StatementName = "SQL1"
+                    }, // 2
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 0,
+                        Type = EventType.StartMethod,
+                        StatementName = "SQL2"
+                    }, // 3
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 0,
+                        Type = EventType.StopMethod,
+                        StatementName = "SQL2"
+                    }, // 4
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 0,
+                        Type = EventType.StopMethod,
+                        StatementName = "OpenConnection"
+                    }, // 5
+                };
+
+            AggregatedEventNode aggregatedCallTree = BuildAggregatedCallTree(profilerEventList);
+
+            AggregatedEventNode expected = new AggregatedEventNode();
+            AggregatedEventNode currentNode = expected;
+
+            currentNode = currentNode.PushEventIntoCallStack(profilerEventList[0]); // +OpenConnection
+            currentNode = currentNode.PushEventIntoCallStack(profilerEventList[1]); // +SQL1
+            currentNode = currentNode.PopEventFromCallStackAndCalculateDuration(0); // -SQL1
+            currentNode = currentNode.PushEventIntoCallStack(profilerEventList[3]); // +SQL2
+            currentNode = currentNode.PopEventFromCallStackAndCalculateDuration(0); // -SQL2
+            currentNode.PopEventFromCallStackAndCalculateDuration(0); // -OpenConnection
+
+            AssertAggregatedEventNode(expected, aggregatedCallTree);
+        }
+
+        /// <summary>
+        /// 
         /// foo();
         /// foo();
         /// 
