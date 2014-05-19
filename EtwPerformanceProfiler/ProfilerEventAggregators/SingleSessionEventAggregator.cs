@@ -17,6 +17,8 @@ namespace EtwPerformanceProfiler
     /// </summary>
     internal class SingleSessionEventAggregator : EventAggregator
     {
+        internal const string StartEventIsMissing = "ERROR: Start event is missing!!! ";
+
         #region Private members
       
         /// <summary>
@@ -168,9 +170,10 @@ namespace EtwPerformanceProfiler
                 TimeStampRelativeMSec = traceEvent.TimeStampRelativeMSec
             };
 
-            AddProfilerEventToAggregatedCallTree(this.previousProfilerEvent, currentProfilerEvent, ref this.currentAggregatedEventNode);
-
-            this.previousProfilerEvent = currentProfilerEvent;
+            if (AddProfilerEventToAggregatedCallTree(this.previousProfilerEvent, currentProfilerEvent, ref this.currentAggregatedEventNode))
+            {
+                this.previousProfilerEvent = currentProfilerEvent;
+            }
         }
 
         /// <summary>
@@ -200,7 +203,8 @@ namespace EtwPerformanceProfiler
         /// <param name="previousProfilerEvent">Previous profiler event which was processed.</param>
         /// <param name="currentProfilerEvent">Profiler event which currently being processed.</param>
         /// <param name="currentAggregatedEventNode">Current aggregated event in the call tree.</param>
-        internal static void AddProfilerEventToAggregatedCallTree(
+        /// <returns>Returns <c>true</c> if event was valid.</returns>
+        internal static bool AddProfilerEventToAggregatedCallTree(
             ProfilerEvent? previousProfilerEvent,
             ProfilerEvent? currentProfilerEvent,
             ref AggregatedEventNode currentAggregatedEventNode)
@@ -210,23 +214,57 @@ namespace EtwPerformanceProfiler
                 // We have alrady calculated duration for the previous statement
                 // and pop it from the statement call stack. 
 
-                if (currentAggregatedEventNode.Parent != null && // We should never pop root event. This can happen if we miss some events in the begining.
-                    // Previous event is the last one.
-                    (!currentProfilerEvent.HasValue ||
-                    // The current event is none AL event. It comes after stop event. Need to pop the the current aggregated node. Only close AL events.
-                    (currentProfilerEvent.Value.IsNonAlEvent && previousProfilerEvent.Value.IsAlEvent) ||
-                    // The current event is not the start. If it is start event when we are in the nested call. One statement several methods.
-                    currentProfilerEvent.Value.Type != EventType.StartMethod ||
-                    // If we have two consequent root method calls
-                    (currentAggregatedEventNode.OriginalType == EventType.StartMethod && currentAggregatedEventNode.IsAlEvent)))
+                // We should never pop root event. This can happen if we miss some events in the begining.
+                if (currentAggregatedEventNode.Parent != null)
                 {
-                    currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(previousProfilerEvent.Value.TimeStampRelativeMSec);
+                    bool popEvent = false;
+
+                    if (!currentProfilerEvent.HasValue || // Previous event is the last one.
+                        // The current event is none AL event. It comes after stop event. Need to pop the the current aggregated node. Only close AL events.
+                        (currentProfilerEvent.Value.IsNonAlEvent && previousProfilerEvent.Value.IsAlEvent) ||
+                        // Here we have statement after function call.
+                        currentProfilerEvent.Value.Type == EventType.Statement ||
+                        // If we have two consequent root method calls
+                        (currentAggregatedEventNode.OriginalType == EventType.StartMethod && currentAggregatedEventNode.IsAlEvent))
+                    {
+                        popEvent = true;
+                    } else if (currentProfilerEvent.Value.Type == EventType.StopMethod) // Herre we have funtion call in the end of other function.
+                    {
+                        if (currentProfilerEvent.Value.IsAlEvent == currentAggregatedEventNode.IsAlEvent)
+                        {
+                            popEvent = true;
+                        }
+                        else
+                        {
+                            // Skip this event. Should never happen. Indicates a bug in the event generation. 
+                            // Some events were missed.
+
+                            // Create fake start event.
+                            ProfilerEvent profilerEvent = currentProfilerEvent.Value;
+                            profilerEvent.Type = EventType.StartMethod;
+                            profilerEvent.StatementName = StartEventIsMissing + profilerEvent.StatementName;
+                            profilerEvent.TimeStampRelativeMSec = previousProfilerEvent.Value.TimeStampRelativeMSec;
+
+                            currentAggregatedEventNode = currentAggregatedEventNode.PushEventIntoCallStack(profilerEvent);
+                            currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(
+                                currentProfilerEvent.Value.TimeStampRelativeMSec);
+                            
+                            return false;
+                        }
+                        
+                    }
+
+                    if (popEvent)
+                    {
+                        currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(
+                            previousProfilerEvent.Value.TimeStampRelativeMSec);
+                    }
                 }
             }
 
             if (!currentProfilerEvent.HasValue)
             {
-                return;
+                return true;
             }
 
             // Statement.
@@ -242,7 +280,7 @@ namespace EtwPerformanceProfiler
 
                 currentAggregatedEventNode = currentAggregatedEventNode.PushEventIntoCallStack(currentProfilerEvent.Value);
 
-                return;
+                return true;
             }
 
             // Method start.
@@ -258,7 +296,7 @@ namespace EtwPerformanceProfiler
 
                 currentAggregatedEventNode.EvaluatedType = EventType.StartMethod;
 
-                return;
+                return true;
             }
 
             // Method stop.
@@ -273,6 +311,8 @@ namespace EtwPerformanceProfiler
                     }
                 }
             }
+
+            return true;
         }
 
         /// <summary>

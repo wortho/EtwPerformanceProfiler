@@ -83,6 +83,114 @@ namespace EtwPerformanceProfilerTest
         /// OpenConnection - Start
         /// foo();
         /// SQL QUERY
+        /// foo2 // missing start
+        /// foo3 // missing start
+        /// OpenConnection - Stop
+        /// 
+        /// foo()
+        ///     var1 += 1;
+        /// </summary>
+        [TestMethod]
+        public void BuildAggregatedCallTreeAlMethodNestedIntoNonAlMethodMissingStartEventsTest()
+        {
+            List<ProfilerEvent> profilerEventList = new List<ProfilerEvent>
+                {
+                    new ProfilerEvent
+                    {
+                        ObjectId = 0,
+                        Type = EventType.StartMethod,
+                        StatementName = "OpenConnection"
+                    }, // 0
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 1,
+                        Type = EventType.StartMethod,
+                        StatementName = "foo"
+                    }, // 1
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 1,
+                        Type = EventType.Statement,
+                        StatementName = "var1 += 1"
+                    }, // 2
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 1,
+                        Type = EventType.StopMethod,
+                        StatementName = "foo"
+                    }, // 3
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 0,
+                        Type = EventType.StartMethod,
+                        StatementName = "SQL"
+                    }, // 4
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 0,
+                        Type = EventType.StopMethod,
+                        StatementName = "SQL"
+                    }, // 5
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 1,
+                        Type = EventType.StopMethod, // not start event for this stop.
+                        StatementName = "foo1"
+                    }, // 6
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 1,
+                        Type = EventType.StopMethod, // not start event for this stop.
+                        StatementName = "foo2"
+                    }, // 7
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 0,
+                        Type = EventType.StopMethod,
+                        StatementName = "OpenConnection"
+                    }, // 8
+                };
+
+            AggregatedEventNode aggregatedCallTree = BuildAggregatedCallTree(profilerEventList);
+
+            AggregatedEventNode expected = new AggregatedEventNode();
+            AggregatedEventNode currentNode = expected;
+
+            currentNode = currentNode.PushEventIntoCallStack(profilerEventList[0]); // +OpenConnection
+            currentNode = currentNode.PushEventIntoCallStack(profilerEventList[1]); // +foo
+            currentNode = currentNode.PushEventIntoCallStack(profilerEventList[2]); // +var1 += 1
+            currentNode = currentNode.PopEventFromCallStackAndCalculateDuration(0); // -var1 += 1
+            currentNode = currentNode.PopEventFromCallStackAndCalculateDuration(0); // -foo
+            currentNode = currentNode.PushEventIntoCallStack(profilerEventList[4]); // +SQL
+            currentNode = currentNode.PopEventFromCallStackAndCalculateDuration(0); // -SQL
+            ProfilerEvent profilerEvent = profilerEventList[6];
+            profilerEvent.Type = EventType.StartMethod;
+            profilerEvent.StatementName = SingleSessionEventAggregator.StartEventIsMissing + profilerEvent.StatementName;
+            currentNode = currentNode.PushEventIntoCallStack(profilerEvent); // +foo1
+            currentNode = currentNode.PopEventFromCallStackAndCalculateDuration(0); // -foo1
+            profilerEvent = profilerEventList[7];
+            profilerEvent.Type = EventType.StartMethod;
+            profilerEvent.StatementName = SingleSessionEventAggregator.StartEventIsMissing + profilerEvent.StatementName;
+            currentNode = currentNode.PushEventIntoCallStack(profilerEvent); // +foo2
+            currentNode = currentNode.PopEventFromCallStackAndCalculateDuration(0); // -foo2
+            currentNode.PopEventFromCallStackAndCalculateDuration(0); // -OpenConnection
+
+            AssertAggregatedEventNode(expected, aggregatedCallTree);
+        }
+
+        /// <summary>
+        /// 
+        /// OpenConnection - Start
+        /// foo();
+        /// SQL QUERY
         /// OpenConnection - Stop
         /// 
         /// foo()
@@ -782,9 +890,11 @@ namespace EtwPerformanceProfilerTest
             {
                 currentProfilerEvent = profilerEvents[i];
 
-                SingleSessionEventAggregator.AddProfilerEventToAggregatedCallTree(previousProfilerEvent, currentProfilerEvent, ref currentAggregatedEventNode);
-
-                previousProfilerEvent = currentProfilerEvent;
+                if (SingleSessionEventAggregator.AddProfilerEventToAggregatedCallTree(previousProfilerEvent,
+                    currentProfilerEvent, ref currentAggregatedEventNode))
+                {
+                    previousProfilerEvent = currentProfilerEvent;
+                }
             }
 
             SingleSessionEventAggregator.AddProfilerEventToAggregatedCallTree(previousProfilerEvent, null, ref currentAggregatedEventNode);
