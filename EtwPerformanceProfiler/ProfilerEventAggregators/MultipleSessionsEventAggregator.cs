@@ -82,6 +82,7 @@ namespace EtwPerformanceProfiler
             {
                 foreach (var sessionAggregatedEventNode in singleSessionEventAggregator.Value.FlattenCallTree())
                 {
+                    //TODO: Check if we need to remove + 1;
                     sessionAggregatedEventNode.Depth += 1;
 
                     yield return sessionAggregatedEventNode;

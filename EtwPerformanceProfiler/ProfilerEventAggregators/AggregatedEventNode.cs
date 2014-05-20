@@ -39,7 +39,7 @@ namespace EtwPerformanceProfiler
         /// <summary>
         /// Gets or sets the duration in 100ns.
         /// </summary>
-        internal double DurationMSec { get; private set; }
+        internal double DurationMSec { get; set; }
 
         /// <summary>
         /// Gets the children of the current node.

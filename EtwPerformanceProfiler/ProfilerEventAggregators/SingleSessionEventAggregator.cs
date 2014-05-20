@@ -7,6 +7,7 @@
 //--------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Microsoft.Diagnostics.Tracing;
 
 namespace EtwPerformanceProfiler
@@ -17,7 +18,7 @@ namespace EtwPerformanceProfiler
     /// </summary>
     internal class SingleSessionEventAggregator : EventAggregator
     {
-        internal const string StartEventIsMissing = "ERROR: Start event is missing!!! ";
+        internal const string StartEventIsMissing = "";
 
         #region Private members
       
@@ -46,12 +47,15 @@ namespace EtwPerformanceProfiler
         /// </summary>
         ProfilerEvent? previousProfilerEvent;
 
+        //TODO: Move to separate class
         /// <summary>
         /// The key is the string and the value is exactly the same string.
         /// The idea is that for the equal strings we will use exactly the same string object.
         /// It saves memory because event list contains a lot of identical strings. 
         /// </summary>
         private readonly Dictionary<string, string> statementCache;
+
+        private bool firstEvent;
 
         #endregion
 
@@ -76,12 +80,14 @@ namespace EtwPerformanceProfiler
         {
             this.aggregatedCallTree = new AggregatedEventNode()
             {
-                StatementName = "Session " + this.profilingSessionId
+                StatementName = "Session: " + this.profilingSessionId + ";"
             };
 
             this.currentAggregatedEventNode = aggregatedCallTree;
 
             this.previousProfilerEvent = null;
+
+            this.firstEvent = true;
         }
 
         /// <summary>
@@ -107,6 +113,13 @@ namespace EtwPerformanceProfiler
         /// <returns>Flatten call tree.</returns>
         internal IEnumerable<AggregatedEventNode> FlattenCallTree()
         {
+            // Update duration on root node
+            this.aggregatedCallTree.DurationMSec = 0;
+            foreach (var aggregatedEventNode in this.aggregatedCallTree.Children)
+            {
+                this.aggregatedCallTree.DurationMSec += aggregatedEventNode.DurationMSec;
+            }
+
             return FlattenCallTree(this.aggregatedCallTree);
         }
 
@@ -135,6 +148,13 @@ namespace EtwPerformanceProfiler
             {
                 // we are interested only in events for the profiling session
                 return;
+            }
+
+            if (this.firstEvent)
+            {
+                this.firstEvent = false;
+
+                this.aggregatedCallTree.StatementName += " User: " + GetUserName(traceEvent) + ";";
             }
 
             string objectType = string.Empty;
@@ -236,14 +256,13 @@ namespace EtwPerformanceProfiler
                         }
                         else
                         {
-                            // Skip this event. Should never happen. Indicates a bug in the event generation. 
+                            // Skip this event. Should never happen. Indicates a issue in the event generation. 
                             // Some events were missed.
 
                             // Create fake start event.
                             ProfilerEvent profilerEvent = currentProfilerEvent.Value;
                             profilerEvent.Type = EventType.StartMethod;
                             profilerEvent.StatementName = StartEventIsMissing + profilerEvent.StatementName;
-                            profilerEvent.TimeStampRelativeMSec = previousProfilerEvent.Value.TimeStampRelativeMSec;
 
                             currentAggregatedEventNode = currentAggregatedEventNode.PushEventIntoCallStack(profilerEvent);
                             currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(

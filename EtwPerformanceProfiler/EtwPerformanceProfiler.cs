@@ -90,6 +90,7 @@ namespace EtwPerformanceProfiler
             get
             {
                 // We subtract one because root element is skipped.
+                //TODO: Check if we need to remove + 1;
                 return this.callTree.Current.Depth - 1;
             }
         }
