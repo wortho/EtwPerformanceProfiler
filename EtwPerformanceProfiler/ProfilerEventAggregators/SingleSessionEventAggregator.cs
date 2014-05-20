@@ -7,6 +7,7 @@
 //--------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Net.Configuration;
 using System.Runtime.InteropServices;
 using Microsoft.Diagnostics.Tracing;
 
@@ -131,7 +132,9 @@ namespace EtwPerformanceProfiler
         {
             int statementIndex;
             EventType eventType;
-            if (!GetStatementIndexAndEventType(traceEvent, out statementIndex, out eventType))
+            bool hasObjectTypeAndId;
+            string statement;
+            if (!GetStatementIndexAndEventType(traceEvent, out statementIndex, out statement, out eventType, out hasObjectTypeAndId))
             {
                 return;
             }
@@ -139,10 +142,10 @@ namespace EtwPerformanceProfiler
             // We can check sessions id only here after we filtered out non Nav events.
             int sessionId = GetSessionId(traceEvent);
 
-            this.AddEtwEventToAggregatedCallTree(traceEvent, sessionId, statementIndex, eventType);
+            this.AddEtwEventToAggregatedCallTree(traceEvent, sessionId, statementIndex, statement, eventType, hasObjectTypeAndId);
         }
 
-        internal void AddEtwEventToAggregatedCallTree(TraceEvent traceEvent, int sessionId, int statementIndex, EventType eventType)
+        internal void AddEtwEventToAggregatedCallTree(TraceEvent traceEvent, int sessionId, int statementIndex, string statementName, EventType eventType, bool hasObjectTypeAndId)
         {
             if (sessionId != this.profilingSessionId)
             {
@@ -159,10 +162,9 @@ namespace EtwPerformanceProfiler
 
             string objectType = string.Empty;
             int objectId = 0;
-            if (statementIndex != NavEventsPayloadIndexes.SqlStatementPayloadIndex &&
-                statementIndex != NavEventsPayloadIndexes.ConnectionTypePayloadIndex)
+            if (hasObjectTypeAndId)
             {
-                // We don't have object type and id for the SQL events.
+                // We don't have object type and id for the non AL events.
 
                 objectType = (string) traceEvent.PayloadValue(NavEventsPayloadIndexes.ObjectTypePayloadIndex);
                 objectId = (int) traceEvent.PayloadValue(NavEventsPayloadIndexes.ObjectIdPayloadIndex);
@@ -176,7 +178,15 @@ namespace EtwPerformanceProfiler
                 lineNo = (int) traceEvent.PayloadValue(NavEventsPayloadIndexes.LineNoPayloadIndex);
             }
 
-            string statement = (string) traceEvent.PayloadValue(statementIndex);
+            string statement;
+            if (statementIndex == NavEventsPayloadIndexes.NonPayloadIndex)
+            {
+                statement = statementName;
+            }
+            else
+            {
+                statement = (string) traceEvent.PayloadValue(statementIndex);
+            }
 
             statement = this.GetStatementFromTheCache(statement);
 

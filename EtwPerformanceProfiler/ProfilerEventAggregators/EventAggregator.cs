@@ -22,21 +22,27 @@ namespace EtwPerformanceProfiler
             return (int)traceEvent.PayloadValue(NavEventsPayloadIndexes.SessionIdPayloadIndex);
         }
 
-        protected static bool GetStatementIndexAndEventType(TraceEvent traceEvent, out int statementIndex, out EventType eventType)
+        protected static bool GetStatementIndexAndEventType(TraceEvent traceEvent, out int statementIndex, out string statement, out EventType eventType, out bool hasObjectTypeAndId)
         {
+            statement = null;
+            hasObjectTypeAndId = false;
+
             switch ((int)traceEvent.ID)
             {
                 case NavEvents.ALFunctionStart:
                     statementIndex = NavEventsPayloadIndexes.ALFunctionNamePayloadIndex;
                     eventType = EventType.StartMethod;
+                    hasObjectTypeAndId = true;
                     break;
                 case NavEvents.ALFunctionStop:
                     statementIndex = NavEventsPayloadIndexes.ALFunctionNamePayloadIndex;
                     eventType = EventType.StopMethod;
+                    hasObjectTypeAndId = true;
                     break;
                 case NavEvents.ALFunctionStatement:
                     statementIndex = NavEventsPayloadIndexes.ALStatementPayloadIndex;
                     eventType = EventType.Statement;
+                    hasObjectTypeAndId = true;
                     break;
                 case NavEvents.SqlExecuteScalarStart:
                     statementIndex = NavEventsPayloadIndexes.SqlStatementPayloadIndex;
@@ -60,6 +66,16 @@ namespace EtwPerformanceProfiler
                     break;
                 case NavEvents.SqlExecuteReaderStop:
                     statementIndex = NavEventsPayloadIndexes.SqlStatementPayloadIndex;
+                    eventType = EventType.StopMethod;
+                    break;
+                case NavEvents.SqlCommitStart:
+                    statement = "COMMIT";
+                    statementIndex = NavEventsPayloadIndexes.NonPayloadIndex;
+                    eventType = EventType.StartMethod;
+                    break;
+                case NavEvents.SqlCommitStop:
+                    statement = "COMMIT";
+                    statementIndex = NavEventsPayloadIndexes.NonPayloadIndex;
                     eventType = EventType.StopMethod;
                     break;
                 case NavEvents.SessionOpened:

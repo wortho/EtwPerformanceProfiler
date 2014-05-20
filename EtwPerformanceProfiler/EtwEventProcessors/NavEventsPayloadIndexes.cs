@@ -15,6 +15,11 @@ namespace EtwPerformanceProfiler
     {
         #region Payload indexes
         /// <summary>
+        /// Identifies that payload index does not exist.
+        /// </summary>
+        internal const int NonPayloadIndex = -1;
+
+        /// <summary>
         /// The index of the tenant id payload parameter as defined in the ETW manifest.
         /// </summary>
         internal const int TenantIdPayloadIndex = 0;
