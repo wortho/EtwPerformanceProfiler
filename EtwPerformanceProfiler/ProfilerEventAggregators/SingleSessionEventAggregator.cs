@@ -48,6 +48,8 @@ namespace EtwPerformanceProfiler
         /// </summary>
         ProfilerEvent? previousProfilerEvent;
 
+        private TraceEvent previousTraceEvent;
+
         //TODO: Move to separate class
         /// <summary>
         /// The key is the string and the value is exactly the same string.
@@ -132,9 +134,9 @@ namespace EtwPerformanceProfiler
         {
             int statementIndex;
             EventType eventType;
-            bool hasObjectTypeAndId;
+            EventSubType eventSubType;
             string statement;
-            if (!GetStatementIndexAndEventType(traceEvent, out statementIndex, out statement, out eventType, out hasObjectTypeAndId))
+            if (!GetStatementIndexAndEventType(traceEvent, out statementIndex, out statement, out eventType, out eventSubType))
             {
                 return;
             }
@@ -142,10 +144,10 @@ namespace EtwPerformanceProfiler
             // We can check sessions id only here after we filtered out non Nav events.
             int sessionId = GetSessionId(traceEvent);
 
-            this.AddEtwEventToAggregatedCallTree(traceEvent, sessionId, statementIndex, statement, eventType, hasObjectTypeAndId);
+            this.AddEtwEventToAggregatedCallTree(traceEvent, sessionId, statementIndex, statement, eventType, eventSubType);
         }
 
-        internal void AddEtwEventToAggregatedCallTree(TraceEvent traceEvent, int sessionId, int statementIndex, string statementName, EventType eventType, bool hasObjectTypeAndId)
+        internal void AddEtwEventToAggregatedCallTree(TraceEvent traceEvent, int sessionId, int statementIndex, string statementName, EventType eventType, EventSubType eventSubType)
         {
             if (sessionId != this.profilingSessionId)
             {
@@ -162,7 +164,7 @@ namespace EtwPerformanceProfiler
 
             string objectType = string.Empty;
             int objectId = 0;
-            if (hasObjectTypeAndId)
+            if (eventSubType == EventSubType.AlEvent)
             {
                 // We don't have object type and id for the non AL events.
 
@@ -193,6 +195,7 @@ namespace EtwPerformanceProfiler
             ProfilerEvent? currentProfilerEvent = new ProfilerEvent
             {
                 Type = eventType,
+                SubType = eventSubType,
                 ObjectType = objectType,
                 ObjectId = objectId,
                 LineNo = lineNo,
@@ -204,6 +207,8 @@ namespace EtwPerformanceProfiler
             {
                 this.previousProfilerEvent = currentProfilerEvent;
             }
+
+            this.previousTraceEvent = traceEvent;
         }
 
         /// <summary>
@@ -239,6 +244,21 @@ namespace EtwPerformanceProfiler
             ProfilerEvent? currentProfilerEvent,
             ref AggregatedEventNode currentAggregatedEventNode)
         {
+            if (previousProfilerEvent.HasValue && previousProfilerEvent.Value.Type == EventType.StartMethod && previousProfilerEvent.Value.SubType == EventSubType.SqlEvent &&
+                currentProfilerEvent.HasValue && currentProfilerEvent.Value.Type == EventType.StartMethod)
+            {
+                // TODO: Here we have two consecutive start events. First event is of the SQL subtype. This should never happen because SQL queries cannot be nested.
+                // TODO: It could indicates an issue in evening.
+                // TODO: Need to pop previous event and push current.
+
+                // TODO: Add error state.
+
+                currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(previousProfilerEvent.Value.TimeStampRelativeMSec);
+                currentAggregatedEventNode = currentAggregatedEventNode.PushEventIntoCallStack(currentProfilerEvent.Value);
+
+                return true;
+            }
+
             if (previousProfilerEvent.HasValue && previousProfilerEvent.Value.Type == EventType.StopMethod)
             {
                 // We have alrady calculated duration for the previous statement
@@ -254,11 +274,11 @@ namespace EtwPerformanceProfiler
                         (currentProfilerEvent.Value.IsNonAlEvent && previousProfilerEvent.Value.IsAlEvent) ||
                         // Here we have statement after function call.
                         currentProfilerEvent.Value.Type == EventType.Statement ||
-                        // If we have two consequent root method calls
+                        // If we have two consecutive root method calls
                         (currentAggregatedEventNode.OriginalType == EventType.StartMethod && currentAggregatedEventNode.IsAlEvent))
                     {
                         popEvent = true;
-                    } else if (currentProfilerEvent.Value.Type == EventType.StopMethod) // Herre we have funtion call in the end of other function.
+                    } else if (currentProfilerEvent.Value.Type == EventType.StopMethod) // Here we have funtion call in the end of other function.
                     {
                         if (currentProfilerEvent.Value.IsAlEvent == currentAggregatedEventNode.IsAlEvent)
                         {
@@ -266,6 +286,8 @@ namespace EtwPerformanceProfiler
                         }
                         else
                         {
+                            //TODO: We hit this block for example in the case if Codeunit 1 trigger is called and it does not have any code.
+                            //TODO: We should consider if we want to fix it in the product.
                             // Skip this event. Should never happen. Indicates a issue in the event generation. 
                             // Some events were missed.
 
@@ -299,7 +321,7 @@ namespace EtwPerformanceProfiler
             // Statement.
             if (currentProfilerEvent.Value.Type == EventType.Statement)
             {
-                // If there are two consequent statements then first we need to calculate the duration for the previous
+                // If there are two consecutive statements then first we need to calculate the duration for the previous
                 // one and pop it from the statement call stack. 
                 // Then we push the current statement event into the stack
                 if (currentAggregatedEventNode.Parent != null && currentAggregatedEventNode.EvaluatedType == EventType.Statement)

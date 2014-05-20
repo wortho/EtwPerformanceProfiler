@@ -35,6 +35,32 @@ namespace EtwPerformanceProfiler
     }
 
     /// <summary>
+    /// Defines the various event sub types that are collected
+    /// </summary>
+    internal enum EventSubType
+    {
+        /// <summary>
+        /// Sql event.
+        /// </summary>
+        SqlEvent,
+
+        /// <summary>
+        /// C/AL event.
+        /// </summary>
+        AlEvent,
+
+        /// <summary>
+        /// Statement.
+        /// </summary>
+        SystemEvent,
+
+        /// <summary>
+        /// Not an event.
+        /// </summary>
+        None
+    }
+
+    /// <summary>
     /// Defines the data structure for an ETW event issued by the NAV server
     /// </summary>
     internal struct ProfilerEvent
@@ -43,6 +69,11 @@ namespace EtwPerformanceProfiler
         /// Gets or sets the type.
         /// </summary>
         internal EventType Type { get; set; }
+
+        /// <summary>
+        /// Gets or sets the sub type.
+        /// </summary>
+        internal EventSubType SubType { get; set; }
 
         /// <summary>
         /// Gets or sets the type of the object.

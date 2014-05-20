@@ -41,9 +41,9 @@ namespace EtwPerformanceProfiler
         {
             int statementIndex;
             EventType eventType;
-            bool hasObjectTypeAndId;
+            EventSubType eventSubType;
             string statement;
-            if (!GetStatementIndexAndEventType(traceEvent, out statementIndex, out statement, out eventType, out hasObjectTypeAndId))
+            if (!GetStatementIndexAndEventType(traceEvent, out statementIndex, out statement, out eventType, out eventSubType))
             {
                 return;
             }
@@ -59,7 +59,7 @@ namespace EtwPerformanceProfiler
                 this.sessionAggregators[sessionId] = sessionAggregator;
             }
 
-            sessionAggregator.AddEtwEventToAggregatedCallTree(traceEvent, sessionId, statementIndex, statement, eventType, hasObjectTypeAndId);
+            sessionAggregator.AddEtwEventToAggregatedCallTree(traceEvent, sessionId, statementIndex, statement, eventType, eventSubType);
         }
 
         /// <summary>
