@@ -19,7 +19,8 @@ namespace EtwPerformanceProfiler
     /// </summary>
     internal class SingleSessionEventAggregator : EventAggregator
     {
-        internal const string StartEventIsMissing = "";
+        internal const string StartEventIsMissing = "Start event is missing: ";
+        internal const string StopEventIsMissing = "Stop event is missing: ";
 
         #region Private members
       
@@ -238,13 +239,47 @@ namespace EtwPerformanceProfiler
         /// <param name="previousProfilerEvent">Previous profiler event which was processed.</param>
         /// <param name="currentProfilerEvent">Profiler event which currently being processed.</param>
         /// <param name="currentAggregatedEventNode">Current aggregated event in the call tree.</param>
-        /// <returns>Returns <c>true</c> if event was valid.</returns>
+        /// <returns>Returns <c>true</c> if event was valid and should not be skipped.</returns>
         internal static bool AddProfilerEventToAggregatedCallTree(
             ProfilerEvent? previousProfilerEvent,
             ProfilerEvent? currentProfilerEvent,
             ref AggregatedEventNode currentAggregatedEventNode)
         {
-            if (previousProfilerEvent.HasValue && previousProfilerEvent.Value.Type == EventType.StartMethod && previousProfilerEvent.Value.SubType == EventSubType.SqlEvent &&
+            bool skipCurrentEvent;
+            if (PopEventFromCallStackIfSomeEventsWereMissing(previousProfilerEvent, currentProfilerEvent,ref currentAggregatedEventNode, out skipCurrentEvent))
+            {
+                return skipCurrentEvent;
+            }
+
+            PopEventFromCallStackForPreviousAlStopMethodEvent(previousProfilerEvent, currentProfilerEvent, ref currentAggregatedEventNode);
+
+            if (!currentProfilerEvent.HasValue)
+            {
+                return true;
+            }
+
+            switch (currentProfilerEvent.Value.Type)
+            {
+                case EventType.Statement:
+                    return AddStatementToAggregatedCallTree(currentProfilerEvent, ref currentAggregatedEventNode);
+                case EventType.StartMethod:
+                    return AddStartMethodToAggregatedCallTree(previousProfilerEvent, currentProfilerEvent, ref currentAggregatedEventNode);
+                case EventType.StopMethod:
+                    return AddStopMethodToAggregatedCallTree(currentProfilerEvent, ref currentAggregatedEventNode);
+            }
+
+            return true;
+        }
+
+        private static bool PopEventFromCallStackIfSomeEventsWereMissing(
+            ProfilerEvent? previousProfilerEvent,
+            ProfilerEvent? currentProfilerEvent,
+            ref AggregatedEventNode currentAggregatedEventNode,
+            out bool skipCurrentEvent)
+        {
+            if (currentAggregatedEventNode.Parent != null &&
+                previousProfilerEvent.HasValue && previousProfilerEvent.Value.Type == EventType.StartMethod &&
+                previousProfilerEvent.Value.SubType == EventSubType.SqlEvent &&
                 currentProfilerEvent.HasValue && currentProfilerEvent.Value.Type == EventType.StartMethod)
             {
                 // TODO: Here we have two consecutive start events. First event is of the SQL subtype. This should never happen because SQL queries cannot be nested.
@@ -253,113 +288,122 @@ namespace EtwPerformanceProfiler
 
                 // TODO: Add error state.
 
+                ProfilerEvent missingProfilerEvent = new ProfilerEvent()
+                {
+                    ObjectType = currentAggregatedEventNode.ObjectType,
+                    ObjectId = currentAggregatedEventNode.ObjectId,
+                    LineNo = currentAggregatedEventNode.LineNo,
+                    StatementName = StopEventIsMissing + currentAggregatedEventNode.StatementName
+                };
+
                 currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(previousProfilerEvent.Value.TimeStampRelativeMSec);
+
+                currentAggregatedEventNode = currentAggregatedEventNode.PushEventIntoCallStack(missingProfilerEvent);
+                currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(missingProfilerEvent.TimeStampRelativeMSec);
+
                 currentAggregatedEventNode = currentAggregatedEventNode.PushEventIntoCallStack(currentProfilerEvent.Value);
 
+                skipCurrentEvent = true;
                 return true;
             }
 
-            if (previousProfilerEvent.HasValue && previousProfilerEvent.Value.Type == EventType.StopMethod)
+            if (currentAggregatedEventNode.Parent != null &&
+                previousProfilerEvent.HasValue && previousProfilerEvent.Value.Type == EventType.StopMethod &&
+                currentProfilerEvent.HasValue && currentProfilerEvent.Value.Type == EventType.StopMethod &&
+                currentProfilerEvent.Value.IsAlEvent != currentAggregatedEventNode.IsAlEvent)
             {
-                // We have alrady calculated duration for the previous statement
+                //TODO: We hit this block for example in the case if Codeunit 1 trigger is called and it does not have any code.
+                //TODO: We should consider if we want to fix it in the product.
+                // Skip this event. Should never happen. Indicates a issue in the event generation. 
+                // Some events were missed.
+
+                // Create fake start event.
+                ProfilerEvent profilerEvent = currentProfilerEvent.Value;
+                profilerEvent.Type = EventType.StartMethod;
+                profilerEvent.StatementName = StartEventIsMissing + profilerEvent.StatementName;
+
+                currentAggregatedEventNode = currentAggregatedEventNode.PushEventIntoCallStack(profilerEvent);
+                currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(currentProfilerEvent.Value.TimeStampRelativeMSec);
+
+                skipCurrentEvent = false;
+                return true;
+            }
+
+            skipCurrentEvent = false;
+            return false;
+        }
+
+        private static void PopEventFromCallStackForPreviousAlStopMethodEvent(
+            ProfilerEvent? previousProfilerEvent,
+            ProfilerEvent? currentProfilerEvent,
+            ref AggregatedEventNode currentAggregatedEventNode)
+        {
+            if (previousProfilerEvent.HasValue && previousProfilerEvent.Value.Type == EventType.StopMethod &&
+                previousProfilerEvent.Value.SubType != EventSubType.SqlEvent)
+            {
+                // We have already calculated duration for the previous statement
                 // and pop it from the statement call stack. 
 
                 // We should never pop root event. This can happen if we miss some events in the begining.
                 if (currentAggregatedEventNode.Parent != null)
                 {
-                    bool popEvent = false;
-
                     if (!currentProfilerEvent.HasValue || // Previous event is the last one.
                         // The current event is none AL event. It comes after stop event. Need to pop the the current aggregated node. Only close AL events.
                         (currentProfilerEvent.Value.IsNonAlEvent && previousProfilerEvent.Value.IsAlEvent) ||
                         // Here we have statement after function call.
                         currentProfilerEvent.Value.Type == EventType.Statement ||
+                        // Here we have funtion call in the end of other function.
+                        currentProfilerEvent.Value.Type == EventType.StopMethod ||
                         // If we have two consecutive root method calls
-                        (currentAggregatedEventNode.OriginalType == EventType.StartMethod && currentAggregatedEventNode.IsAlEvent))
+                        (currentAggregatedEventNode.OriginalType == EventType.StartMethod &&
+                         currentAggregatedEventNode.IsAlEvent))
                     {
-                        popEvent = true;
-                    } else if (currentProfilerEvent.Value.Type == EventType.StopMethod) // Here we have funtion call in the end of other function.
-                    {
-                        if (currentProfilerEvent.Value.IsAlEvent == currentAggregatedEventNode.IsAlEvent)
-                        {
-                            popEvent = true;
-                        }
-                        else
-                        {
-                            //TODO: We hit this block for example in the case if Codeunit 1 trigger is called and it does not have any code.
-                            //TODO: We should consider if we want to fix it in the product.
-                            // Skip this event. Should never happen. Indicates a issue in the event generation. 
-                            // Some events were missed.
-
-                            // Create fake start event.
-                            ProfilerEvent profilerEvent = currentProfilerEvent.Value;
-                            profilerEvent.Type = EventType.StartMethod;
-                            profilerEvent.StatementName = StartEventIsMissing + profilerEvent.StatementName;
-
-                            currentAggregatedEventNode = currentAggregatedEventNode.PushEventIntoCallStack(profilerEvent);
-                            currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(
-                                currentProfilerEvent.Value.TimeStampRelativeMSec);
-                            
-                            return false;
-                        }
-                        
-                    }
-
-                    if (popEvent)
-                    {
-                        currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(
-                            previousProfilerEvent.Value.TimeStampRelativeMSec);
+                        currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(previousProfilerEvent.Value.TimeStampRelativeMSec);
                     }
                 }
             }
+        }
 
-            if (!currentProfilerEvent.HasValue)
+        private static bool AddStatementToAggregatedCallTree(ProfilerEvent? currentProfilerEvent, ref AggregatedEventNode currentAggregatedEventNode)
+        {
+            // If there are two consecutive statements then first we need to calculate the duration for the previous
+            // one and pop it from the statement call stack. 
+            // Then we push the current statement event into the stack
+            if (currentAggregatedEventNode.Parent != null && currentAggregatedEventNode.EvaluatedType == EventType.Statement)
             {
-                return true;
+                currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(currentProfilerEvent.Value.TimeStampRelativeMSec);
             }
 
-            // Statement.
-            if (currentProfilerEvent.Value.Type == EventType.Statement)
+            currentAggregatedEventNode = currentAggregatedEventNode.PushEventIntoCallStack(currentProfilerEvent.Value);
+
+            return true;
+        }
+
+        private static bool AddStartMethodToAggregatedCallTree(ProfilerEvent? previousProfilerEvent, ProfilerEvent? currentProfilerEvent, ref AggregatedEventNode currentAggregatedEventNode)
+        {
+            // If it is the root method or if it is non AL event we also push start event into the stack.
+            if (currentAggregatedEventNode.Parent == null ||
+                currentProfilerEvent.Value.IsNonAlEvent ||
+                (previousProfilerEvent.HasValue && previousProfilerEvent.Value.IsNonAlEvent))
             {
-                // If there are two consecutive statements then first we need to calculate the duration for the previous
-                // one and pop it from the statement call stack. 
-                // Then we push the current statement event into the stack
-                if (currentAggregatedEventNode.Parent != null && currentAggregatedEventNode.EvaluatedType == EventType.Statement)
+                currentAggregatedEventNode = currentAggregatedEventNode.PushEventIntoCallStack(currentProfilerEvent.Value);
+            }
+
+            currentAggregatedEventNode.EvaluatedType = EventType.StartMethod;
+
+            return true;
+        }
+
+        private static bool AddStopMethodToAggregatedCallTree(ProfilerEvent? currentProfilerEvent, ref AggregatedEventNode currentAggregatedEventNode)
+        {
+            if (currentAggregatedEventNode.Parent != null)
+            {
+                    // We need to calculate duration for the previous statement and pop it from the statement call stack.
+                if (currentAggregatedEventNode.EvaluatedType == EventType.Statement ||
+                    // Always close non events.
+                    currentProfilerEvent.Value.IsNonAlEvent) 
                 {
                     currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(currentProfilerEvent.Value.TimeStampRelativeMSec);
-                }
-
-                currentAggregatedEventNode = currentAggregatedEventNode.PushEventIntoCallStack(currentProfilerEvent.Value);
-
-                return true;
-            }
-
-            // Method start.
-            if (currentProfilerEvent.Value.Type == EventType.StartMethod)
-            {
-                // If it is the root method or if it is SQL event we also push start event into the stack.
-                if (currentAggregatedEventNode.Parent == null || 
-                    currentProfilerEvent.Value.IsNonAlEvent || 
-                    (previousProfilerEvent.HasValue && previousProfilerEvent.Value.IsNonAlEvent))
-                {
-                    currentAggregatedEventNode = currentAggregatedEventNode.PushEventIntoCallStack(currentProfilerEvent.Value);
-                }
-
-                currentAggregatedEventNode.EvaluatedType = EventType.StartMethod;
-
-                return true;
-            }
-
-            // Method stop.
-            if (currentProfilerEvent.Value.Type == EventType.StopMethod)
-            { 
-                if (currentAggregatedEventNode.Parent != null)
-                {
-                    if (currentAggregatedEventNode.EvaluatedType == EventType.Statement || // We need to calculate duration for the previous statement and pop it from the statement call stack.
-                        currentProfilerEvent.Value.IsNonAlEvent) // Always close sql events.
-                    {
-                        currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(currentProfilerEvent.Value.TimeStampRelativeMSec);
-                    }
                 }
             }
 

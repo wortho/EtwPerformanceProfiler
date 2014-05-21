@@ -24,6 +24,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 1,
                         Type = EventType.Statement,
+                        SubType = EventSubType.AlEvent,
                         StatementName = "foo"
                     }, // 0
 
@@ -31,6 +32,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 1,
                         Type = EventType.StartMethod,
+                        SubType = EventSubType.AlEvent,
                         StatementName = "foo"
                     }, // 1
 
@@ -38,6 +40,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 1,
                         Type = EventType.Statement,
+                        SubType = EventSubType.AlEvent,
                         StatementName = "var1 += 1"
                     }, // 2
 
@@ -45,6 +48,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 1,
                         Type = EventType.StopMethod,
+                        SubType = EventSubType.AlEvent,
                         StatementName = "foo"
                     }, // 3
 
@@ -99,6 +103,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 0,
                         Type = EventType.StartMethod,
+                        SubType = EventSubType.SystemEvent,
                         StatementName = "OpenConnection"
                     }, // 0
 
@@ -106,6 +111,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 1,
                         Type = EventType.StartMethod,
+                        SubType = EventSubType.AlEvent,
                         StatementName = "foo"
                     }, // 1
 
@@ -113,6 +119,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 1,
                         Type = EventType.Statement,
+                        SubType = EventSubType.AlEvent,
                         StatementName = "var1 += 1"
                     }, // 2
 
@@ -120,6 +127,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 1,
                         Type = EventType.StopMethod,
+                        SubType = EventSubType.AlEvent,
                         StatementName = "foo"
                     }, // 3
 
@@ -141,6 +149,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 1,
                         Type = EventType.StopMethod, // not start event for this stop.
+                        SubType = EventSubType.AlEvent,
                         StatementName = "foo1"
                     }, // 6
 
@@ -148,6 +157,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 1,
                         Type = EventType.StopMethod, // not start event for this stop.
+                        SubType = EventSubType.AlEvent,
                         StatementName = "foo2"
                     }, // 7
 
@@ -155,6 +165,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 0,
                         Type = EventType.StopMethod,
+                        SubType = EventSubType.SystemEvent,
                         StatementName = "OpenConnection"
                     }, // 8
                 };
@@ -205,6 +216,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 0,
                         Type = EventType.StartMethod,
+                        SubType = EventSubType.SystemEvent,
                         StatementName = "OpenConnection"
                     }, // 0
 
@@ -212,6 +224,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 1,
                         Type = EventType.StartMethod,
+                        SubType = EventSubType.AlEvent,
                         StatementName = "foo"
                     }, // 1
 
@@ -219,6 +232,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 1,
                         Type = EventType.Statement,
+                        SubType = EventSubType.AlEvent,
                         StatementName = "var1 += 1"
                     }, // 2
 
@@ -226,6 +240,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 1,
                         Type = EventType.StopMethod,
+                        SubType = EventSubType.AlEvent,
                         StatementName = "foo"
                     }, // 3
 
@@ -247,6 +262,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 0,
                         Type = EventType.StopMethod,
+                        SubType = EventSubType.SystemEvent,
                         StatementName = "OpenConnection"
                     }, // 6
                 };
@@ -270,6 +286,189 @@ namespace EtwPerformanceProfilerTest
 
         /// <summary>
         /// 
+        /// SQL QUERY1 - Start
+        /// SQL QUERY2 - Start
+        /// SQL QUERY2 - Stop
+        /// 
+        /// </summary>
+        [TestMethod]
+        public void BuildAggregatedCallTreeMissingSqlStopEventNextIsSqlEventTest()
+        {
+            List<ProfilerEvent> profilerEventList = new List<ProfilerEvent>
+                {
+                    new ProfilerEvent
+                    {
+                        ObjectId = 0,
+                        Type = EventType.StartMethod,
+                        StatementName = "SQL1"
+                    }, // 0
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 0,
+                        Type = EventType.StartMethod,
+                        StatementName = "SQL2"
+                    }, // 1
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 0,
+                        Type = EventType.StopMethod,
+                        StatementName = "SQL2"
+                    }, // 2
+                };
+
+            AggregatedEventNode aggregatedCallTree = BuildAggregatedCallTree(profilerEventList);
+
+            AggregatedEventNode expected = new AggregatedEventNode();
+            AggregatedEventNode currentNode = expected;
+
+            currentNode = currentNode.PushEventIntoCallStack(profilerEventList[0]); // +SQL1
+            currentNode = currentNode.PopEventFromCallStackAndCalculateDuration(0); // -SQL1
+
+            ProfilerEvent profilerEvent = profilerEventList[0];
+            profilerEvent.Type = EventType.StartMethod;
+            profilerEvent.StatementName = SingleSessionEventAggregator.StopEventIsMissing + profilerEvent.StatementName;
+            currentNode = currentNode.PushEventIntoCallStack(profilerEvent); // +SQL1
+            currentNode = currentNode.PopEventFromCallStackAndCalculateDuration(0); // -SQL1
+
+            currentNode = currentNode.PushEventIntoCallStack(profilerEventList[1]); // +SQL2
+            currentNode.PopEventFromCallStackAndCalculateDuration(0); // -SQL2
+
+            AssertAggregatedEventNode(expected, aggregatedCallTree);
+        }
+
+        /// <summary>
+        /// 
+        /// SQL QUERY1 - Start
+        /// AL Event - Start
+        /// AL Event - Stop
+        /// 
+        /// </summary>
+        [TestMethod]
+        public void BuildAggregatedCallTreeMissingSqlStopEventNextIsAlEventTest()
+        {
+            List<ProfilerEvent> profilerEventList = new List<ProfilerEvent>
+                {
+                    new ProfilerEvent
+                    {
+                        ObjectId = 0,
+                        Type = EventType.StartMethod,
+                        StatementName = "SQL1"
+                    }, // 0
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 1,
+                        Type = EventType.StartMethod,
+                        SubType = EventSubType.AlEvent,
+                        StatementName = "AL"
+                    }, // 1
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 1,
+                        Type = EventType.StopMethod,
+                        SubType = EventSubType.AlEvent,
+                        StatementName = "AL"
+                    }, // 2
+                };
+
+            AggregatedEventNode aggregatedCallTree = BuildAggregatedCallTree(profilerEventList);
+
+            AggregatedEventNode expected = new AggregatedEventNode();
+            AggregatedEventNode currentNode = expected;
+
+            currentNode = currentNode.PushEventIntoCallStack(profilerEventList[0]); // +SQL1
+            currentNode = currentNode.PopEventFromCallStackAndCalculateDuration(0); // -SQL1
+
+            ProfilerEvent profilerEvent = profilerEventList[0];
+            profilerEvent.Type = EventType.StartMethod;
+            profilerEvent.StatementName = SingleSessionEventAggregator.StopEventIsMissing + profilerEvent.StatementName;
+            currentNode = currentNode.PushEventIntoCallStack(profilerEvent); // +SQL1
+            currentNode = currentNode.PopEventFromCallStackAndCalculateDuration(0); // -SQL1
+
+            currentNode = currentNode.PushEventIntoCallStack(profilerEventList[1]); // +AL
+            currentNode.PopEventFromCallStackAndCalculateDuration(0); // -AL
+
+            AssertAggregatedEventNode(expected, aggregatedCallTree);
+        }
+
+        /// <summary>
+        /// 
+        /// OpenConnection - Start. AL Event
+        /// SQL QUERY1
+        /// SQL QUERY2
+        /// OpenConnection - Stop. AL Event
+        /// 
+        /// </summary>
+        [TestMethod]
+        public void BuildAggregatedCallTreeOpenConnectionTwoNestedSQLQueriesRootAlEventTest()
+        {
+            List<ProfilerEvent> profilerEventList = new List<ProfilerEvent>
+                {
+                    new ProfilerEvent
+                    {
+                        ObjectId = 1,
+                        Type = EventType.StartMethod,
+                        SubType = EventSubType.AlEvent,
+                        StatementName = "OpenConnection"
+                    }, // 0
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 0,
+                        Type = EventType.StartMethod,
+                        StatementName = "SQL1"
+                    }, // 1
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 0,
+                        Type = EventType.StopMethod,
+                        StatementName = "SQL1"
+                    }, // 2
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 0,
+                        Type = EventType.StartMethod,
+                        StatementName = "SQL2"
+                    }, // 3
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 0,
+                        Type = EventType.StopMethod,
+                        StatementName = "SQL2"
+                    }, // 4
+
+                    new ProfilerEvent
+                    {
+                        ObjectId = 1,
+                        Type = EventType.StopMethod,
+                        SubType = EventSubType.AlEvent,
+                        StatementName = "OpenConnection"
+                    }, // 5
+                };
+
+            AggregatedEventNode aggregatedCallTree = BuildAggregatedCallTree(profilerEventList);
+
+            AggregatedEventNode expected = new AggregatedEventNode();
+            AggregatedEventNode currentNode = expected;
+
+            currentNode = currentNode.PushEventIntoCallStack(profilerEventList[0]); // +OpenConnection
+            currentNode = currentNode.PushEventIntoCallStack(profilerEventList[1]); // +SQL1
+            currentNode = currentNode.PopEventFromCallStackAndCalculateDuration(0); // -SQL1
+            currentNode = currentNode.PushEventIntoCallStack(profilerEventList[3]); // +SQL2
+            currentNode = currentNode.PopEventFromCallStackAndCalculateDuration(0); // -SQL2
+            currentNode.PopEventFromCallStackAndCalculateDuration(0); // -OpenConnection
+
+            AssertAggregatedEventNode(expected, aggregatedCallTree);
+        }
+
+        /// <summary>
+        /// 
         /// OpenConnection - Start
         /// SQL QUERY1
         /// SQL QUERY2
@@ -285,6 +484,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 0,
                         Type = EventType.StartMethod,
+                        SubType = EventSubType.SystemEvent,
                         StatementName = "OpenConnection"
                     }, // 0
 
@@ -320,6 +520,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 0,
                         Type = EventType.StopMethod,
+                        SubType = EventSubType.SystemEvent,
                         StatementName = "OpenConnection"
                     }, // 5
                 };
@@ -356,6 +557,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 1,
                         Type = EventType.Statement,
+                        SubType = EventSubType.AlEvent,
                         StatementName = "foo"
                     }, // 0
 
@@ -363,6 +565,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 1,
                         Type = EventType.StartMethod,
+                        SubType = EventSubType.AlEvent,
                         StatementName = "foo"
                     }, // 1
 
@@ -370,6 +573,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 1,
                         Type = EventType.Statement,
+                        SubType = EventSubType.AlEvent,
                         StatementName = "var1 += 1"
                     }, // 2
 
@@ -377,6 +581,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 1,
                         Type = EventType.StopMethod,
+                        SubType = EventSubType.AlEvent,
                         StatementName = "foo"
                     }, // 3
 
@@ -384,6 +589,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 1,
                         Type = EventType.Statement,
+                        SubType = EventSubType.AlEvent,
                         StatementName = "foo"
                     }, // 4
 
@@ -391,6 +597,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 1,
                         Type = EventType.StartMethod,
+                        SubType = EventSubType.AlEvent,
                         StatementName = "foo"
                     }, // 5
 
@@ -398,6 +605,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 1,
                         Type = EventType.Statement,
+                        SubType = EventSubType.AlEvent,
                         StatementName = "var1 += 1"
                     }, // 6
 
@@ -405,6 +613,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 1,
                         Type = EventType.StopMethod,
+                        SubType = EventSubType.AlEvent,
                         StatementName = "foo"
                     }, // 7
                 };
@@ -457,12 +666,14 @@ namespace EtwPerformanceProfilerTest
                         {
                             ObjectId = 1,
                             Type = EventType.Statement,
+                            SubType = EventSubType.AlEvent,
                             StatementName = "FOR i:= 1"
                         }, // 0
                     new ProfilerEvent
                         {
                             ObjectId = 1,
                             Type = EventType.Statement,
+                            SubType = EventSubType.AlEvent,
                             StatementName = "3"
                         } // 1
                 };
@@ -521,6 +732,7 @@ namespace EtwPerformanceProfilerTest
                 {
                     ObjectId = 1,
                     Type = EventType.Statement,
+                    SubType = EventSubType.AlEvent,
                     StatementName = "foo"
                 }); // 2
 
@@ -529,6 +741,7 @@ namespace EtwPerformanceProfilerTest
                 {
                     ObjectId = 1,
                     Type = EventType.StartMethod,
+                    SubType = EventSubType.AlEvent,
                     StatementName = "foo"
                 }); // 3
 
@@ -537,6 +750,7 @@ namespace EtwPerformanceProfilerTest
                 {
                     ObjectId = 1,
                     Type = EventType.Statement,
+                    SubType = EventSubType.AlEvent,
                     StatementName = "SELECTLATESTVERSION"
                 }); // 4
 
@@ -545,6 +759,7 @@ namespace EtwPerformanceProfilerTest
                 {
                     ObjectId = 1,
                     Type = EventType.Statement,
+                    SubType = EventSubType.AlEvent,
                     StatementName = "r.FINDFIRST"
                 }); // 5
 
@@ -553,6 +768,7 @@ namespace EtwPerformanceProfilerTest
                 {
                     ObjectId = 0,
                     Type = EventType.StartMethod,
+                    SubType = EventSubType.AlEvent,
                     StatementName = "SELECT"
                 }); // 6
 
@@ -561,6 +777,7 @@ namespace EtwPerformanceProfilerTest
                 {
                     ObjectId = 0,
                     Type = EventType.StopMethod,
+                    SubType = EventSubType.AlEvent,
                     StatementName = "SELECT"
                 }); // 7
 
@@ -569,6 +786,7 @@ namespace EtwPerformanceProfilerTest
                 {
                     ObjectId = 1,
                     Type = EventType.Statement,
+                    SubType = EventSubType.AlEvent,
                     StatementName = "var1 += 1"
                 }); // 8
 
@@ -577,6 +795,7 @@ namespace EtwPerformanceProfilerTest
                 {
                     ObjectId = 1,
                     Type = EventType.Statement,
+                    SubType = EventSubType.AlEvent,
                     StatementName = "SLEEP(1000)"
                 }); // 9
 
@@ -585,6 +804,7 @@ namespace EtwPerformanceProfilerTest
                 {
                     ObjectId = 1,
                     Type = EventType.Statement,
+                    SubType = EventSubType.AlEvent,
                     StatementName = "foo1"
                 }); // 10
 
@@ -593,6 +813,7 @@ namespace EtwPerformanceProfilerTest
                 {
                     ObjectId = 1,
                     Type = EventType.StartMethod,
+                    SubType = EventSubType.AlEvent,
                     StatementName = "foo1"
                 }); // 11
 
@@ -601,6 +822,7 @@ namespace EtwPerformanceProfilerTest
                 {
                     ObjectId = 1,
                     Type = EventType.Statement,
+                    SubType = EventSubType.AlEvent,
                     StatementName = "foo2"
                 }); // 12
 
@@ -609,6 +831,7 @@ namespace EtwPerformanceProfilerTest
                 {
                     ObjectId = 1,
                     Type = EventType.StartMethod,
+                    SubType = EventSubType.AlEvent,
                     StatementName = "foo2"
                 }); // 13
 
@@ -617,6 +840,7 @@ namespace EtwPerformanceProfilerTest
                 {
                     ObjectId = 1,
                     Type = EventType.Statement,
+                    SubType = EventSubType.AlEvent,
                     StatementName = "var1 += 1"
                 }); // 14
 
@@ -625,6 +849,7 @@ namespace EtwPerformanceProfilerTest
                 {
                     ObjectId = 1,
                     Type = EventType.Statement,
+                    SubType = EventSubType.AlEvent,
                     StatementName = "MESSAGE('Hi!')"
                 }); // 15
 
@@ -633,6 +858,7 @@ namespace EtwPerformanceProfilerTest
                 {
                     ObjectId = 1,
                     Type = EventType.StopMethod,
+                    SubType = EventSubType.AlEvent,
                     StatementName = "foo2"
                 }); // 16
 
@@ -641,6 +867,7 @@ namespace EtwPerformanceProfilerTest
                 {
                     ObjectId = 1,
                     Type = EventType.Statement,
+                    SubType = EventSubType.AlEvent,
                     StatementName = "var1 += 1"
                 }); // 17
 
@@ -649,6 +876,7 @@ namespace EtwPerformanceProfilerTest
                 {
                     ObjectId = 1,
                     Type = EventType.StopMethod,
+                    SubType = EventSubType.AlEvent,
                     StatementName = "foo1"
                 }); // 18
 
@@ -657,6 +885,7 @@ namespace EtwPerformanceProfilerTest
                 {
                     ObjectId = 1,
                     Type = EventType.StopMethod,
+                    SubType = EventSubType.AlEvent,
                     StatementName = "foo"
                 }); // 19
         }
@@ -684,60 +913,70 @@ namespace EtwPerformanceProfilerTest
                         {
                             ObjectId = 1,
                             Type = EventType.Statement,
+                            SubType = EventSubType.AlEvent,
                             StatementName = "IF predicate1 OR predicate2"
                         }, // 0
                     new ProfilerEvent
                         {
                             ObjectId = 1,
                             Type = EventType.StartMethod,
+                            SubType = EventSubType.AlEvent,
                             StatementName = "predicate1"
                         }, // 1
                     new ProfilerEvent
                         {
                             ObjectId = 1,
                             Type = EventType.Statement,
+                            SubType = EventSubType.AlEvent,
                             StatementName = "p1 += 1"
                         }, // 2
                     new ProfilerEvent
                         {
                             ObjectId = 1,
                             Type = EventType.Statement,
+                            SubType = EventSubType.AlEvent,
                             StatementName = "EXIT(FALSE)"
                         }, // 3
                     new ProfilerEvent
                         {
                             ObjectId = 1,
                             Type = EventType.StopMethod,
+                            SubType = EventSubType.AlEvent,
                             StatementName = "predicate1"
                         }, // 4
                     new ProfilerEvent
                         {
                             ObjectId = 1,
                             Type = EventType.StartMethod,
+                            SubType = EventSubType.AlEvent,
                             StatementName = "predicate2"
                         }, // 5
                     new ProfilerEvent
                         {
                             ObjectId = 1,
                             Type = EventType.Statement,
+                            SubType = EventSubType.AlEvent,
                             StatementName = "p2 += 1"
                         }, // 6
                     new ProfilerEvent
                         {
                             ObjectId = 1,
                             Type = EventType.Statement,
+                            SubType = EventSubType.AlEvent,
                             StatementName = "EXIT(TRUE)"
                         }, // 7
                     new ProfilerEvent
                         {
                             ObjectId = 1,
                             Type = EventType.StopMethod,
+                            SubType = EventSubType.AlEvent,
                             StatementName = "predicate2"
                         }, // 8
                     new ProfilerEvent
                         {
                             ObjectId = 1,
                             Type = EventType.Statement,
+                            SubType = EventSubType.AlEvent,
                             StatementName = "i := 0"
                         }, // 9
                 };
@@ -785,42 +1024,49 @@ namespace EtwPerformanceProfilerTest
                         {
                             ObjectId = 1,
                             Type = EventType.StartMethod,
+                            SubType = EventSubType.AlEvent,
                             StatementName = "Clear Codeunit 1 calls - OnAction"
                         }, // 0
                     new ProfilerEvent
                         {
                             ObjectId = 1,
                             Type = EventType.Statement,
+                            SubType = EventSubType.AlEvent,
                             StatementName = "codeUnit1Call := FALSE"
                         }, // 1
                     new ProfilerEvent
                         {
                             ObjectId = 1,
                             Type = EventType.Statement,
+                            SubType = EventSubType.AlEvent,
                             StatementName = "EXIT"
                         }, // 2
                     new ProfilerEvent
                         {
                             ObjectId = 1,
                             Type = EventType.StopMethod,
+                            SubType = EventSubType.AlEvent,
                             StatementName = "Clear Codeunit 1 calls - OnAction"
                         }, // 3
                     new ProfilerEvent
                         {
                             ObjectId = 1,
                             Type = EventType.StartMethod,
+                            SubType = EventSubType.AlEvent,
                             StatementName = "Stop - OnAction"
                         }, // 4
                     new ProfilerEvent
                         {
                             ObjectId = 1,
                             Type = EventType.Statement,
+                            SubType = EventSubType.AlEvent,
                             StatementName = "ProfilerStarted := FALSE"
                         }, // 5
                     new ProfilerEvent
                         {
                             ObjectId = 1,
                             Type = EventType.Statement,
+                            SubType = EventSubType.AlEvent,
                             StatementName = "SLEEP(5000)"
                         }, // 6
                 };
@@ -926,6 +1172,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 1,
                         Type = EventType.StartMethod,
+                        SubType = EventSubType.AlEvent,
                         StatementName = "RootMethod"
                     }, // 0
 
@@ -933,6 +1180,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 1,
                         Type = EventType.Statement,
+                        SubType = EventSubType.AlEvent,
                         StatementName = "rec1.DELETEALL"
                     }, // 1
 
@@ -940,6 +1188,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 1,
                         Type = EventType.StartMethod,
+                        SubType = EventSubType.AlEvent,
                         StatementName = "foo"
                     }, // 2
 
@@ -947,6 +1196,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 1,
                         Type = EventType.Statement,
+                        SubType = EventSubType.AlEvent,
                         StatementName = "var1 += 1"
                     }, // 3
 
@@ -954,6 +1204,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 1,
                         Type = EventType.StopMethod,
+                        SubType = EventSubType.AlEvent,
                         StatementName = "foo"
                     }, // 4
 
@@ -961,6 +1212,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 1,
                         Type = EventType.Statement,
+                        SubType = EventSubType.AlEvent,
                         StatementName = "rec2.DELETEALL"
                     }, // 5
 
@@ -968,6 +1220,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 1,
                         Type = EventType.StopMethod,
+                        SubType = EventSubType.AlEvent,
                         StatementName = "RootMethod"
                     }, // 6
 
@@ -975,6 +1228,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 1,
                         Type = EventType.StartMethod,
+                        SubType = EventSubType.AlEvent,
                         StatementName = "RootMethod"
                     }, // 7
 
@@ -982,6 +1236,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 1,
                         Type = EventType.Statement,
+                        SubType = EventSubType.AlEvent,
                         StatementName = "rec1.DELETEALL"
                     }, // 8
 
@@ -989,6 +1244,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 1,
                         Type = EventType.Statement,
+                        SubType = EventSubType.AlEvent,
                         StatementName = "rec2.DELETEALL"
                     }, // 9
 
@@ -996,6 +1252,7 @@ namespace EtwPerformanceProfilerTest
                     {
                         ObjectId = 1,
                         Type = EventType.StopMethod,
+                        SubType = EventSubType.AlEvent,
                         StatementName = "RootMethod"
                     }, // 10
                 };

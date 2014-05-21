@@ -73,6 +73,11 @@ namespace EtwPerformanceProfiler
         internal EventType EvaluatedType { get; set; }
 
         /// <summary>
+        /// Gets or sets the sub type of the node.
+        /// </summary>
+        internal EventSubType SubType { get; set; }
+
+        /// <summary>
         /// Depth of the current element in the tree.
         /// </summary>
         internal int Depth { get; set; }
@@ -90,7 +95,11 @@ namespace EtwPerformanceProfiler
         /// </summary>
         internal bool IsAlEvent
         {
-            get { return this.ObjectId != 0; }
+            get
+            {
+                Debug.Assert((this.SubType == EventSubType.AlEvent) == (this.ObjectId != 0));
+                return this.SubType == EventSubType.AlEvent;
+            }
         }
              
         /// <summary>
@@ -138,7 +147,8 @@ namespace EtwPerformanceProfiler
                     StatementName = profilerEvent.StatementName,
                     TimeStampRelativeMSec = profilerEvent.TimeStampRelativeMSec,
                     OriginalType = profilerEvent.Type,
-                    EvaluatedType = profilerEvent.Type
+                    EvaluatedType = profilerEvent.Type,
+                    SubType = profilerEvent.SubType,
                 };
 
             this.Children.Add(res);
