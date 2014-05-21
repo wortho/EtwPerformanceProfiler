@@ -278,21 +278,20 @@ namespace EtwPerformanceProfiler
             out bool skipCurrentEvent)
         {
             if (currentAggregatedEventNode.Parent != null &&
-                previousProfilerEvent.HasValue && previousProfilerEvent.Value.Type == EventType.StartMethod &&
-                previousProfilerEvent.Value.SubType == EventSubType.SqlEvent &&
-                currentProfilerEvent.HasValue && currentProfilerEvent.Value.Type == EventType.StartMethod)
+                currentAggregatedEventNode.OriginalType == EventType.StartMethod &&
+                currentAggregatedEventNode.SubType == EventSubType.SqlEvent &&
+                currentProfilerEvent.HasValue && !(currentProfilerEvent.Value.Type == EventType.StopMethod && currentProfilerEvent.Value.SubType == EventSubType.SqlEvent))
             {
                 // TODO: Here we have two consecutive start events. First event is of the SQL subtype. This should never happen because SQL queries cannot be nested.
                 // TODO: It could indicates an issue in evening.
                 // TODO: Need to pop previous event and push current.
-
-                // TODO: Add error state.
 
                 ProfilerEvent missingProfilerEvent = new ProfilerEvent()
                 {
                     ObjectType = currentAggregatedEventNode.ObjectType,
                     ObjectId = currentAggregatedEventNode.ObjectId,
                     LineNo = currentAggregatedEventNode.LineNo,
+                    Type = EventType.StartMethod,
                     StatementName = StopEventIsMissing + currentAggregatedEventNode.StatementName
                 };
 
@@ -301,7 +300,10 @@ namespace EtwPerformanceProfiler
                 currentAggregatedEventNode = currentAggregatedEventNode.PushEventIntoCallStack(missingProfilerEvent);
                 currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(missingProfilerEvent.TimeStampRelativeMSec);
 
-                currentAggregatedEventNode = currentAggregatedEventNode.PushEventIntoCallStack(currentProfilerEvent.Value);
+                if (currentProfilerEvent.Value.Type == EventType.StartMethod || currentProfilerEvent.Value.Type == EventType.Statement)
+                {
+                    currentAggregatedEventNode = currentAggregatedEventNode.PushEventIntoCallStack(currentProfilerEvent.Value);
+                }
 
                 skipCurrentEvent = true;
                 return true;

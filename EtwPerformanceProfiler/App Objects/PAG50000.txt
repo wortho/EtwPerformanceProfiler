@@ -97,7 +97,7 @@ OBJECT Page 50000 Performance Profiler
                                BEGIN
                                  ETLFileName := OpenFileDialog('Analyze ETL File', 'Trace Files (*.etl)|*.etl');
 
-                                 PerformanceProfiler.AnalyzeETLFile(ETLFileName,0);
+                                 PerformanceProfiler.AnalyzeETLFile(ETLFileName,Threshold);
 
                                  CLEAR(Rec);
                                  Rec.INIT;
