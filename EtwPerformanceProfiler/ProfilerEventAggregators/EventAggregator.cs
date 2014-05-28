@@ -110,25 +110,25 @@ namespace EtwPerformanceProfiler
                     eventType = EventType.StopMethod;
                     eventSubType = EventSubType.SqlEvent;
                     break;
-                case NavEvents.OpenServiceConnectionStart:
+                case NavEvents.CreateServiceSessionStart:
                     statement = "Open Session: ";
                     statementIndex = NavEventsPayloadIndexes.ConnectionTypePayloadIndex;
                     eventType = EventType.StartMethod;
                     eventSubType = EventSubType.SystemEvent;
                     break;
-                case NavEvents.OpenServiceConnectionStop:
+                case NavEvents.CreateServiceSessionStop:
                     statement = "Open Session: ";
                     statementIndex = NavEventsPayloadIndexes.ConnectionTypePayloadIndex;
                     eventType = EventType.StopMethod;
                     eventSubType = EventSubType.SystemEvent;
                     break;
-                case NavEvents.CloseServiceConnectionStart:
+                case NavEvents.EndServiceSessionStart:
                     statement = "Close Session: ";
                     statementIndex = NavEventsPayloadIndexes.ConnectionTypePayloadIndex;
                     eventType = EventType.StartMethod;
                     eventSubType = EventSubType.SystemEvent;
                     break;
-                case NavEvents.CloseServiceConnectionStop:
+                case NavEvents.EndServiceSessionStop:
                     statement = "Close Session: ";
                     statementIndex = NavEventsPayloadIndexes.ConnectionTypePayloadIndex;
                     eventType = EventType.StopMethod;

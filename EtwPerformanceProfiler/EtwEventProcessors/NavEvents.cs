@@ -140,24 +140,24 @@ namespace EtwPerformanceProfiler
         #region Service calls events
 
         /// <summary>
-        /// An event id for OpenServiceConnectionStart event.
+        /// An event id for CreateServiceSessionStart event.
         /// </summary>
-        public const int OpenServiceConnectionStart = 312;
+        public const int CreateServiceSessionStart = 312;
 
         /// <summary>
-        /// An event id for OpenServiceConnectionStop event.
+        /// An event id for CreateServiceSessionStop event.
         /// </summary>
-        public const int OpenServiceConnectionStop = 313;
+        public const int CreateServiceSessionStop = 313;
 
         /// <summary>
-        /// An event id for CloseServiceConnectionStart event.
+        /// An event id for EndServiceSessionStart event.
         /// </summary>
-        public const int CloseServiceConnectionStart = 314;
+        public const int EndServiceSessionStart = 314;
 
         /// <summary>
-        /// An event id for CloseServiceConnectionStop event.
+        /// An event id for EndServiceSessionStop event.
         /// </summary>
-        public const int CloseServiceConnectionStop = 315;
+        public const int EndServiceSessionStop = 315;
 
         #endregion
 
