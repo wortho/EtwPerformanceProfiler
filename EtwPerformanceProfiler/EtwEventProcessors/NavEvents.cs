@@ -137,6 +137,30 @@ namespace EtwPerformanceProfiler
         internal const int ALFunctionStatement = 403;
         #endregion
 
+        #region Service calls events
+
+        /// <summary>
+        /// An event id for OpenServiceConnectionStart event.
+        /// </summary>
+        public const int OpenServiceConnectionStart = 312;
+
+        /// <summary>
+        /// An event id for OpenServiceConnectionStop event.
+        /// </summary>
+        public const int OpenServiceConnectionStop = 313;
+
+        /// <summary>
+        /// An event id for CloseServiceConnectionStart event.
+        /// </summary>
+        public const int CloseServiceConnectionStart = 314;
+
+        /// <summary>
+        /// An event id for CloseServiceConnectionStop event.
+        /// </summary>
+        public const int CloseServiceConnectionStop = 315;
+
+        #endregion
+
         #region Session events
         /// <summary>
         /// The session opened event.

@@ -78,24 +78,58 @@ namespace EtwPerformanceProfiler
                     eventType = EventType.StopMethod;
                     eventSubType = EventSubType.SqlEvent;
                     break;
+                case NavEvents.SqlReadNextResultStart:
+                    statementIndex = NavEventsPayloadIndexes.SqlStatementPayloadIndex;
+                    eventType = EventType.StartMethod;
+                    eventSubType = EventSubType.SqlEvent;
+                    break;
+                case NavEvents.SqlReadNextResultStop:
+                    statementIndex = NavEventsPayloadIndexes.SqlStatementPayloadIndex;
+                    eventType = EventType.StopMethod;
+                    eventSubType = EventSubType.SqlEvent;
+                    break;
+                case NavEvents.SqlReadNextRowStart:
+                    statementIndex = NavEventsPayloadIndexes.SqlStatementPayloadIndex;
+                    eventType = EventType.StartMethod;
+                    eventSubType = EventSubType.SqlEvent;
+                    break;
+                case NavEvents.SqlReadNextRowStop:
+                    statementIndex = NavEventsPayloadIndexes.SqlStatementPayloadIndex;
+                    eventType = EventType.StopMethod;
+                    eventSubType = EventSubType.SqlEvent;
+                    break;
                 case NavEvents.SqlCommitStart:
-                    statement = "COMMIT";
+                    statement = "SQL COMMIT";
                     statementIndex = NavEventsPayloadIndexes.NonPayloadIndex;
                     eventType = EventType.StartMethod;
                     eventSubType = EventSubType.SqlEvent;
                     break;
                 case NavEvents.SqlCommitStop:
-                    statement = "COMMIT";
+                    statement = "SQL COMMIT";
                     statementIndex = NavEventsPayloadIndexes.NonPayloadIndex;
                     eventType = EventType.StopMethod;
                     eventSubType = EventSubType.SqlEvent;
                     break;
-                case NavEvents.SessionOpened:
+                case NavEvents.OpenServiceConnectionStart:
+                    statement = "Open Session: ";
                     statementIndex = NavEventsPayloadIndexes.ConnectionTypePayloadIndex;
                     eventType = EventType.StartMethod;
                     eventSubType = EventSubType.SystemEvent;
                     break;
-                case NavEvents.SessionClosed:
+                case NavEvents.OpenServiceConnectionStop:
+                    statement = "Open Session: ";
+                    statementIndex = NavEventsPayloadIndexes.ConnectionTypePayloadIndex;
+                    eventType = EventType.StopMethod;
+                    eventSubType = EventSubType.SystemEvent;
+                    break;
+                case NavEvents.CloseServiceConnectionStart:
+                    statement = "Close Session: ";
+                    statementIndex = NavEventsPayloadIndexes.ConnectionTypePayloadIndex;
+                    eventType = EventType.StartMethod;
+                    eventSubType = EventSubType.SystemEvent;
+                    break;
+                case NavEvents.CloseServiceConnectionStop:
+                    statement = "Close Session: ";
                     statementIndex = NavEventsPayloadIndexes.ConnectionTypePayloadIndex;
                     eventType = EventType.StopMethod;
                     eventSubType = EventSubType.SystemEvent;

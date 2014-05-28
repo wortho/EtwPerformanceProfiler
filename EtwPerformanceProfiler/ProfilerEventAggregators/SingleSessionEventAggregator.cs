@@ -7,8 +7,6 @@
 //--------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Net.Configuration;
-using System.Runtime.InteropServices;
 using Microsoft.Diagnostics.Tracing;
 
 namespace EtwPerformanceProfiler
@@ -82,7 +80,7 @@ namespace EtwPerformanceProfiler
         /// </summary>
         internal void Initialize()
         {
-            this.aggregatedCallTree = new AggregatedEventNode()
+            this.aggregatedCallTree = new AggregatedEventNode
             {
                 StatementName = "Session: " + this.profilingSessionId + ";"
             };
@@ -188,7 +186,14 @@ namespace EtwPerformanceProfiler
             }
             else
             {
-                statement = (string) traceEvent.PayloadValue(statementIndex);
+                if (!string.IsNullOrEmpty(statementName))
+                {
+                    statement = statementName + (string)traceEvent.PayloadValue(statementIndex);
+                }
+                else
+                {
+                    statement = (string)traceEvent.PayloadValue(statementIndex);
+                }
             }
 
             statement = this.GetStatementFromTheCache(statement);
@@ -286,7 +291,7 @@ namespace EtwPerformanceProfiler
                 // TODO: It could indicates an issue in evening.
                 // TODO: Need to pop previous event and push current.
 
-                ProfilerEvent missingProfilerEvent = new ProfilerEvent()
+                ProfilerEvent missingProfilerEvent = new ProfilerEvent
                 {
                     ObjectType = currentAggregatedEventNode.ObjectType,
                     ObjectId = currentAggregatedEventNode.ObjectId,
