@@ -15,7 +15,7 @@ namespace EtwPerformanceProfiler
     /// This class is responsible for aggregating events and building the call tree.
     /// it processes events from single session. 
     /// </summary>
-    internal class SingleSessionEventAggregator : EventAggregator
+    internal class SingleSessionEventAggregator : EventAggregator, IEventAggregator
     {
         internal const string StartEventIsMissing = "Start event is missing: ";
         internal const string StopEventIsMissing = "Stop event is missing: ";
@@ -78,7 +78,7 @@ namespace EtwPerformanceProfiler
         /// <summary>
         /// Initializes state of the <see cref="DynamicProfilerEventProcessor"/>
         /// </summary>
-        internal void Initialize()
+        public void Initialize()
         {
             this.aggregatedCallTree = new AggregatedEventNode
             {
@@ -96,7 +96,7 @@ namespace EtwPerformanceProfiler
         /// Finishes aggregation.
         /// </summary>
         /// <param name="buildAggregatedCallTree">true if the aggregated call is to be built.</param>
-        internal void FinishAggregation(bool buildAggregatedCallTree = true)
+        public void FinishAggregation(bool buildAggregatedCallTree = true)
         {
             if (buildAggregatedCallTree)
             {
@@ -113,7 +113,7 @@ namespace EtwPerformanceProfiler
         /// Traverses the call stack tree.
         /// </summary>
         /// <returns>Flatten call tree.</returns>
-        internal IEnumerable<AggregatedEventNode> FlattenCallTree()
+        public IEnumerable<AggregatedEventNode> FlattenCallTree()
         {
             // Update duration on root node
             this.aggregatedCallTree.DurationMSec = 0;
@@ -129,7 +129,7 @@ namespace EtwPerformanceProfiler
         /// The callback which is called every time new event appears.
         /// </summary>
         /// <param name="traceEvent">The trace event.</param>
-        internal void AddEtwEventToAggregatedCallTree(TraceEvent traceEvent)
+        public void AddEtwEventToAggregatedCallTree(TraceEvent traceEvent)
         {
             int statementIndex;
             EventType eventType;

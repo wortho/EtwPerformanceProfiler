@@ -40,7 +40,7 @@ namespace EtwPerformanceProfiler
         {
             this.multipleSessionsEventAggregator = new MultipleSessionsEventAggregator(threshold);
 
-            this.etwEventFileProcessor = new EtwEventFileProcessor(etlFilePath, this.multipleSessionsEventAggregator.AddEtwEventToProfilerEventAggregator);
+            this.etwEventFileProcessor = new EtwEventFileProcessor(etlFilePath, this.multipleSessionsEventAggregator.AddEtwEventToAggregatedCallTree);
         }
 
         /// <summary>

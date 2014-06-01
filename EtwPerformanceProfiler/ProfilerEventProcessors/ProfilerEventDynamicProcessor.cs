@@ -18,6 +18,8 @@ namespace EtwPerformanceProfiler
     internal class DynamicProfilerEventProcessor : IDisposable
     {
         #region Private members
+
+        private const int MultipleSessionsId = -1;
       
         /// <summary>
         /// The name of the event source.
@@ -37,7 +39,7 @@ namespace EtwPerformanceProfiler
         /// <summary>
         /// The associated event aggregator.
         /// </summary>
-        private readonly SingleSessionEventAggregator singleSessionEventAggregator;
+        private readonly IEventAggregator eventAggregator;
 
         #endregion
 
@@ -48,9 +50,16 @@ namespace EtwPerformanceProfiler
         /// <param name="threshold">The threshold value. The aggregated call tree will only show events greater than this.</param>
         internal DynamicProfilerEventProcessor(int sessionId, long threshold = 0)
         {
-            this.singleSessionEventAggregator = new SingleSessionEventAggregator(sessionId, threshold);
+            if (sessionId == MultipleSessionsId)
+            {
+                this.eventAggregator = new MultipleSessionsEventAggregator(threshold);    
+            }
+            else
+            {
+                this.eventAggregator = new SingleSessionEventAggregator(sessionId, threshold);    
+            }
 
-            this.etwEventDynamicProcessor = new EtwEventDynamicProcessor(ProviderName, this.singleSessionEventAggregator.AddEtwEventToAggregatedCallTree);
+            this.etwEventDynamicProcessor = new EtwEventDynamicProcessor(ProviderName, this.eventAggregator.AddEtwEventToAggregatedCallTree);
         }
 
         /// <summary>
@@ -77,7 +86,7 @@ namespace EtwPerformanceProfiler
         /// </summary>
         private void Initialize()
         {
-            this.singleSessionEventAggregator.Initialize();
+            this.eventAggregator.Initialize();
         }
 
         /// <summary>
@@ -92,7 +101,7 @@ namespace EtwPerformanceProfiler
                 this.etwEventDynamicProcessor = null;                
             }
 
-            this.singleSessionEventAggregator.FinishAggregation(buildAggregatedCallTree);
+            this.eventAggregator.FinishAggregation(buildAggregatedCallTree);
         }
 
         /// <summary>
@@ -101,7 +110,7 @@ namespace EtwPerformanceProfiler
         /// <returns>Flatten call tree.</returns>
         internal IEnumerable<AggregatedEventNode> FlattenCallTree()
         {
-            return this.singleSessionEventAggregator.FlattenCallTree();
+            return this.eventAggregator.FlattenCallTree();
         }
 
         /// <summary>

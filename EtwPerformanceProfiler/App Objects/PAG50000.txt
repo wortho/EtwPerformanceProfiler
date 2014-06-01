@@ -15,8 +15,10 @@ OBJECT Page 50000 Performance Profiler
     SourceTable=Table50000;
     PageType=List;
     OnInit=BEGIN
-             Threshold := 0;
+             Threshold := 1;
              TargetSessionID := SESSIONID;
+             TargetSessionIDEditable := TRUE;
+             MultipleSessionsId := -1;
            END;
 
     OnOpenPage=BEGIN
@@ -59,8 +61,15 @@ OBJECT Page 50000 Performance Profiler
                                  i@1001 : Integer;
                                BEGIN
                                  CLEAR(Rec);
-                                 Rec.SETFILTER("Session ID", '=%1', TargetSessionID);
-                                 Rec.DELETEALL;
+
+                                 IF (MultipleSessionsId = TargetSessionID) THEN BEGIN
+                                   CLEAR(Rec);
+                                   Rec.INIT;
+                                   Rec.DELETEALL;
+                                 END ELSE BEGIN
+                                   Rec.SETFILTER("Session ID", '=%1', TargetSessionID);
+                                   Rec.DELETEALL;
+                                 END;
 
                                  PerformanceProfiler.Start(TargetSessionID, Threshold);
 
@@ -148,6 +157,7 @@ OBJECT Page 50000 Performance Profiler
                 Lookup=Yes;
                 SourceExpr=TargetSessionID;
                 TableRelation="Active Session"."Session ID";
+                Editable=TargetSessionIDEditable;
                 OnValidate=BEGIN
                              Rec.SETFILTER("Session ID", '=%1', TargetSessionID);
                            END;
@@ -156,6 +166,21 @@ OBJECT Page 50000 Performance Profiler
     { 19  ;2   ;Field     ;
                 Name=Threshold;
                 SourceExpr=Threshold }
+
+    { 21  ;2   ;Field     ;
+                Name=ProfileMultipleSessions;
+                CaptionML=ENU=Profile multiple Sessions;
+                SourceExpr=ProfileMultipleSessions;
+                OnValidate=BEGIN
+                             IF (ProfileMultipleSessions) THEN BEGIN
+                               TargetSessionID := MultipleSessionsId;
+                               TargetSessionIDEditable := FALSE
+                             END ELSE BEGIN
+                               TargetSessionID := SESSIONID;
+                               TargetSessionIDEditable := TRUE
+                             END;
+                           END;
+                            }
 
     { 2   ;1   ;Group     ;
                 Name=Call Tree;
@@ -210,9 +235,12 @@ OBJECT Page 50000 Performance Profiler
       ProgressDialog@1004 : Dialog;
       PerformanceProfiler@1000 : DotNet "'EtwPerformanceProfiler, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.EtwPerformanceProfiler.EtwPerformanceProfiler";
       ProfilerStarted@1001 : Boolean INDATASET;
+      TargetSessionIDEditable@1008 : Boolean;
       TargetSessionID@1003 : Integer INDATASET;
       PleaseWaitCollectingData@1005 : TextConst 'ENU=Collecting performance data \\Please wait #1';
       Threshold@1006 : Integer;
+      MultipleSessionsId@1002 : Integer;
+      ProfileMultipleSessions@1007 : Boolean;
 
     LOCAL PROCEDURE WaitForDataToBeCollected@4();
     VAR

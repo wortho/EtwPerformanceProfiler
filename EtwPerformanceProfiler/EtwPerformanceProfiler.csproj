@@ -49,6 +49,7 @@
   <ItemGroup>
     <Compile Include="EtwEventProcessors\EtwEventFileProcessor.cs" />
     <Compile Include="ProfilerEventAggregators\EventAggregator.cs" />
+    <Compile Include="ProfilerEventAggregators\IEventAggregator.cs" />
     <Compile Include="ProfilerEventAggregators\MultipleSessionsEventAggregator.cs" />
     <Compile Include="ProfilerEventAggregators\AggregatedEventNode.cs" />
     <Compile Include="EtwEventProcessors\EtwEventDynamicProcessor.cs" />

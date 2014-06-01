@@ -89,9 +89,7 @@ namespace EtwPerformanceProfiler
         {
             get
             {
-                // We subtract one because root element is skipped.
-                //TODO: Check if we need to remove + 1;
-                return this.callTree.Current.Depth - 1;
+                return this.callTree.Current.Depth;
             }
         }
 
@@ -176,9 +174,6 @@ namespace EtwPerformanceProfiler
             this.dynamicProfilerEventProcessor.Stop();
 
             this.callTree = this.dynamicProfilerEventProcessor.FlattenCallTree().GetEnumerator();
-
-            // We want to skip root element.
-            this.callTree.MoveNext();
         }
 
         /// <summary>

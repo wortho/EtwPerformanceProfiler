@@ -7,6 +7,7 @@
 //--------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Diagnostics.Tracing;
 
 namespace EtwPerformanceProfiler
@@ -15,9 +16,9 @@ namespace EtwPerformanceProfiler
     /// This class is responsible for aggregating events and building the call tree.
     /// It processes event from different sessions.
     /// </summary>
-    internal class MultipleSessionsEventAggregator : EventAggregator
+    internal class MultipleSessionsEventAggregator : EventAggregator, IEventAggregator
     {
-        private readonly Dictionary<int, SingleSessionEventAggregator> sessionAggregators = new Dictionary<int, SingleSessionEventAggregator>();
+        private Dictionary<int, SingleSessionEventAggregator> sessionAggregators;
 
         /// <summary>
         /// The threashold value. The aggregated call three will be filtered on values greater than the threshold.
@@ -28,16 +29,18 @@ namespace EtwPerformanceProfiler
         /// Creates a new instance of the <see cref="MultipleSessionsEventAggregator"/> class.
         /// </summary>
         /// <param name="threshold">The threshold value. The aggregated call tree will only show events greater than this.</param>
-        internal MultipleSessionsEventAggregator(int threshold)
+        internal MultipleSessionsEventAggregator(long threshold)
         {
             this.threshold = threshold;
+
+            this.Initialize();
         }
 
         /// <summary>
         /// The callback which is called every time new event appears.
         /// </summary>
         /// <param name="traceEvent">The trace event.</param>
-        internal void AddEtwEventToProfilerEventAggregator(TraceEvent traceEvent)
+        public void AddEtwEventToAggregatedCallTree(TraceEvent traceEvent)
         {
             int statementIndex;
             EventType eventType;
@@ -63,10 +66,18 @@ namespace EtwPerformanceProfiler
         }
 
         /// <summary>
+        /// Initializes state of the <see cref="MultipleSessionsEventAggregator"/>
+        /// </summary>
+        public void Initialize()
+        {
+            this.sessionAggregators = new Dictionary<int, SingleSessionEventAggregator>();
+        }
+
+        /// <summary>
         /// Finishes aggregation.
         /// </summary>
         /// <param name="buildAggregatedCallTree">true if the aggregated call is to be built.</param>
-        internal void FinishAggregation(bool buildAggregatedCallTree = true)
+        public void FinishAggregation(bool buildAggregatedCallTree = true)
         {
             foreach (var singleSessionEventAggregator in this.sessionAggregators)
             {
@@ -78,18 +89,9 @@ namespace EtwPerformanceProfiler
         /// Traverses the call stack tree.
         /// </summary>
         /// <returns>Flatten call tree.</returns>
-        internal IEnumerable<AggregatedEventNode> FlattenCallTree()
+        public IEnumerable<AggregatedEventNode> FlattenCallTree()
         {
-            foreach (var singleSessionEventAggregator in this.sessionAggregators)
-            {
-                foreach (var sessionAggregatedEventNode in singleSessionEventAggregator.Value.FlattenCallTree())
-                {
-                    //TODO: Check if we need to remove + 1;
-                    sessionAggregatedEventNode.Depth += 1;
-
-                    yield return sessionAggregatedEventNode;
-                }
-            }
+            return this.sessionAggregators.SelectMany(singleSessionEventAggregator => singleSessionEventAggregator.Value.FlattenCallTree());
         }
     }
 }
