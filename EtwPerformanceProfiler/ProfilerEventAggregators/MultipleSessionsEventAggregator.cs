@@ -66,6 +66,15 @@ namespace EtwPerformanceProfiler
         }
 
         /// <summary>
+        /// Calculates maximum relative time stamp.
+        /// </summary>
+        /// <returns>Maximum relative time stamp.</returns>
+        public double MaxRelativeTimeStamp()
+        {
+            return this.sessionAggregators.Max(a => a.Value.MaxRelativeTimeStamp());
+        }
+
+        /// <summary>
         /// Initializes state of the <see cref="MultipleSessionsEventAggregator"/>
         /// </summary>
         public void Initialize()

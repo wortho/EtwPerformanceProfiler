@@ -2,8 +2,9 @@ OBJECT Table 50000 Performance Profiler Events
 {
   OBJECT-PROPERTIES
   {
-    Date=;
-    Time=;
+    Date=06-06-14;
+    Time=17:09:41;
+    Modified=Yes;
     Version List=Performance Profiler;
   }
   PROPERTIES
@@ -24,9 +25,13 @@ OBJECT Table 50000 Performance Profiler Events
     { 6   ;   ;Line No             ;Integer        }
     { 7   ;   ;Statement           ;Text250        }
     { 8   ;   ;Duration            ;Decimal        }
-    { 9   ;   ;HitCount            ;Integer        }
-    { 10  ;   ;Total               ;Decimal       ;FieldClass=FlowField;
+    { 9   ;   ;MinDuration         ;Decimal        }
+    { 10  ;   ;MaxDuration         ;Decimal        }
+    { 11  ;   ;LastActive          ;Decimal        }
+    { 12  ;   ;HitCount            ;Integer        }
+    { 13  ;   ;Total               ;Decimal       ;FieldClass=FlowField;
                                                    CalcFormula=Sum("Performance Profiler Events".Duration WHERE (Indentation=CONST(0))) }
+    { 14  ;   ;FullStatement       ;BLOB           }
   }
   KEYS
   {

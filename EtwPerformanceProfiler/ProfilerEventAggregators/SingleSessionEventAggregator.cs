@@ -102,6 +102,8 @@ namespace EtwPerformanceProfiler
             {
                 AddProfilerEventToAggregatedCallTree(this.previousProfilerEvent, null, ref this.currentAggregatedEventNode);
 
+                this.aggregatedCallTree.CalcMinMaxRelativeTimeStampMSec();
+
                 if (this.aggregatedCallTree != null)
                 {
                     this.ReduceTree(this.aggregatedCallTree);
@@ -144,6 +146,15 @@ namespace EtwPerformanceProfiler
             int sessionId = GetSessionId(traceEvent);
 
             this.AddEtwEventToAggregatedCallTree(traceEvent, sessionId, statementIndex, statement, eventType, eventSubType);
+        }
+
+        /// <summary>
+        /// Calculates maximum relative time stamp.
+        /// </summary>
+        /// <returns>Maximum relative time stamp.</returns>
+        public double MaxRelativeTimeStamp()
+        {
+            return this.aggregatedCallTree.MaxRelativeTimeStampMSec;
         }
 
         internal void AddEtwEventToAggregatedCallTree(TraceEvent traceEvent, int sessionId, int statementIndex, string statementName, EventType eventType, EventSubType eventSubType)

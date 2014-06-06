@@ -8,6 +8,7 @@
 
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace EtwPerformanceProfiler
 {
@@ -37,9 +38,19 @@ namespace EtwPerformanceProfiler
         internal string StatementName { get; set; }
 
         /// <summary>
-        /// Gets or sets the duration in 100ns.
+        /// Gets or sets the duration in MS.
         /// </summary>
         internal double DurationMSec { get; set; }
+
+        /// <summary>
+        /// Gets or sets the min duration in MS.
+        /// </summary>
+        internal double MinDurationMSec { get; set; }
+
+        /// <summary>
+        /// Gets or sets the max duration in MS.
+        /// </summary>
+        internal double MaxDurationMSec { get; set; }
 
         /// <summary>
         /// Gets the children of the current node.
@@ -52,9 +63,19 @@ namespace EtwPerformanceProfiler
         internal int HitCount { get; private set; }
 
         /// <summary>
-        /// Gets or sets the time stamp in 100ns.
+        /// Gets or sets the time stamp in MS.
         /// </summary>
         internal double TimeStampRelativeMSec { get; private set; }
+
+        /// <summary>
+        /// Gets or sets the min time stamp in MS.
+        /// </summary>
+        internal double MinRelativeTimeStampMSec { get; private set; }
+
+        /// <summary>
+        /// Gets or sets the max time stamp in MS.
+        /// </summary>
+        internal double MaxRelativeTimeStampMSec { get; private set; }
 
         /// <summary>
         /// Gets or sets the parent node.
@@ -157,11 +178,54 @@ namespace EtwPerformanceProfiler
             return res;
         }
 
+        /// <summary>
+        /// Pops event from the call stack.
+        /// </summary>
+        /// <param name="endTimeStampRelativeMSec">End time stamp for the aggregated event node on the top of call stack.</param>
+        /// <returns>The aggregated event node.</returns>
         internal AggregatedEventNode PopEventFromCallStackAndCalculateDuration(double endTimeStampRelativeMSec)
         {
-            this.DurationMSec += (endTimeStampRelativeMSec - this.TimeStampRelativeMSec);
+            double lastDuration = endTimeStampRelativeMSec - this.TimeStampRelativeMSec;
+
+            if (this.MinDurationMSec <= 0 || this.MinDurationMSec > lastDuration)
+            {
+                this.MinDurationMSec = lastDuration;
+            }
+
+            if (this.MaxDurationMSec < lastDuration)
+            {
+                this.MaxDurationMSec = lastDuration;
+            }
+
+            this.DurationMSec += lastDuration;
+
+            this.TimeStampRelativeMSec = endTimeStampRelativeMSec;
 
             return this.Parent;
+        }
+
+        /// <summary>
+        /// Calculates min max time stamp.
+        /// </summary>
+        internal void CalcMinMaxRelativeTimeStampMSec()
+        {
+            foreach (AggregatedEventNode child in Children)
+            {
+                child.CalcMinMaxRelativeTimeStampMSec();
+            }
+
+            if (this.Children.Count > 0)
+            {
+                this.MinRelativeTimeStampMSec = this.Children.Min(n => n.MinRelativeTimeStampMSec);
+
+                this.MaxRelativeTimeStampMSec = this.Children.Max(n => n.MaxRelativeTimeStampMSec);
+            }
+            else
+            {
+                this.MinRelativeTimeStampMSec = this.TimeStampRelativeMSec;
+
+                this.MaxRelativeTimeStampMSec = this.TimeStampRelativeMSec;
+            }
         }
     }
 }

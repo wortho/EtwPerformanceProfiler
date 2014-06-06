@@ -15,7 +15,8 @@ OBJECT Page 50000 Performance Profiler
     SourceTable=Table50000;
     PageType=List;
     OnInit=BEGIN
-             Threshold := 1;
+             MaxStatementLength := 250;
+             Threshold := 0;
              TargetSessionID := SESSIONID;
              TargetSessionIDEditable := TRUE;
              MultipleSessionsId := -1;
@@ -106,13 +107,15 @@ OBJECT Page 50000 Performance Profiler
                                BEGIN
                                  ETLFileName := OpenFileDialog('Analyze ETL File', 'Trace Files (*.etl)|*.etl');
 
-                                 PerformanceProfiler.AnalyzeETLFile(ETLFileName,Threshold);
+                                 IF (ETLFileName <> '') THEN BEGIN
+                                   PerformanceProfiler.AnalyzeETLFile(ETLFileName,Threshold);
 
-                                 CLEAR(Rec);
-                                 Rec.INIT;
-                                 Rec.DELETEALL;
+                                   CLEAR(Rec);
+                                   Rec.INIT;
+                                   Rec.DELETEALL;
 
-                                 CopyEventsFromProfilerToTable;
+                                   CopyEventsFromProfilerToTable;
+                                 END;
                                END;
                                 }
       { 10      ;1   ;Action    ;
@@ -139,6 +142,27 @@ OBJECT Page 50000 Performance Profiler
                                    IF (codeUnit1Call) THEN
                                     DELETE;
                                  UNTIL NEXT = 0;
+                               END;
+                                }
+      { 25      ;1   ;Action    ;
+                      Name=Get Statement;
+                      Promoted=Yes;
+                      PromotedIsBig=Yes;
+                      Image=Comment;
+                      PromotedCategory=Process;
+                      OnAction=VAR
+                                 InStream@1000 : InStream;
+                                 StatementBigTxt@1001 : BigText;
+                                 StatementTxt@1002 : Text;
+                               BEGIN
+                                 CALCFIELDS(FullStatement);
+
+                                 FullStatement.CREATEINSTREAM(InStream);
+                                 StatementBigTxt.READ(InStream);
+
+                                 StatementBigTxt.GETSUBTEXT(StatementTxt, 1, StatementBigTxt.LENGTH);
+
+                                 MESSAGE(StatementTxt);
                                END;
                                 }
     }
@@ -209,6 +233,15 @@ OBJECT Page 50000 Performance Profiler
                 Style=Attention }
 
     { 13  ;2   ;Field     ;
+                SourceExpr=MinDuration }
+
+    { 22  ;2   ;Field     ;
+                SourceExpr=MaxDuration }
+
+    { 23  ;2   ;Field     ;
+                SourceExpr=LastActive }
+
+    { 24  ;2   ;Field     ;
                 SourceExpr=HitCount }
 
     { 6   ;2   ;Field     ;
@@ -240,6 +273,7 @@ OBJECT Page 50000 Performance Profiler
       PleaseWaitCollectingData@1005 : TextConst 'ENU=Collecting performance data \\Please wait #1';
       Threshold@1006 : Integer;
       MultipleSessionsId@1002 : Integer;
+      MaxStatementLength@1010 : Integer;
       ProfileMultipleSessions@1007 : Boolean;
 
     LOCAL PROCEDURE WaitForDataToBeCollected@4();
@@ -274,7 +308,10 @@ OBJECT Page 50000 Performance Profiler
 
     LOCAL PROCEDURE CopyEventsFromProfilerToTable@12();
     VAR
+      OutStream@1003 : OutStream;
       I@1000 : Integer;
+      StatementTxt@1002 : Text;
+      StatementBigTxt@1001 : BigText;
     BEGIN
       I := 1;
 
@@ -287,8 +324,22 @@ OBJECT Page 50000 Performance Profiler
         Rec."Object Type" := PerformanceProfiler.CallTreeCurrentStatementOwningObjectType;
         Rec."Object ID" := PerformanceProfiler.CallTreeCurrentStatementOwningObjectId;
         Rec."Line No" := PerformanceProfiler.CallTreeCurrentStatementLineNo;
-        Rec.Statement := PerformanceProfiler.CallTreeCurrentStatement;
+
+        StatementTxt := PerformanceProfiler.CallTreeCurrentStatement;
+        IF(STRLEN(StatementTxt) > MaxStatementLength) THEN BEGIN
+          Statement := COPYSTR(StatementTxt,1,MaxStatementLength);
+        END ELSE BEGIN
+          Rec.Statement := StatementTxt;
+        END;
+        CLEAR(StatementBigTxt);
+        StatementBigTxt.ADDTEXT(StatementTxt);
+        FullStatement.CREATEOUTSTREAM(OutStream);
+        StatementBigTxt.WRITE(OutStream);
+
         Rec.Duration := PerformanceProfiler.CallTreeCurrentStatementDurationMs;
+        Rec.MinDuration := PerformanceProfiler.CallTreeCurrentStatementMinDurationMs;
+        Rec.MaxDuration := PerformanceProfiler.CallTreeCurrentStatementMaxDurationMs;
+        Rec.LastActive := PerformanceProfiler.CallTreeCurrentStatementLastActiveMs;
         Rec.HitCount := PerformanceProfiler.CallTreeCurrentStatementHitCount;
         Rec.INSERT;
 

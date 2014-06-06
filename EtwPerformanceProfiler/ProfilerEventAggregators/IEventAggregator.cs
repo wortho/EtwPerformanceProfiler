@@ -6,11 +6,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE.
 //--------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Diagnostics.Tracing;
 
 namespace EtwPerformanceProfiler
@@ -39,5 +35,11 @@ namespace EtwPerformanceProfiler
         /// </summary>
         /// <param name="traceEvent">The trace event.</param>
         void AddEtwEventToAggregatedCallTree(TraceEvent traceEvent);
+
+        /// <summary>
+        /// Calculates maximum relative time stamp.
+        /// </summary>
+        /// <returns>Maximum relative time stamp.</returns>
+        double MaxRelativeTimeStamp();
     }
 }

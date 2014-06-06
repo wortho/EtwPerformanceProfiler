@@ -63,6 +63,15 @@ namespace EtwPerformanceProfiler
         }
 
         /// <summary>
+        /// Calculates maximum relative time stamp.
+        /// </summary>
+        /// <returns>Maximum relative time stamp.</returns>
+        public double MaxRelativeTimeStamp()
+        {
+            return this.multipleSessionsEventAggregator.MaxRelativeTimeStamp();
+        }
+
+        /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
         public void Dispose()

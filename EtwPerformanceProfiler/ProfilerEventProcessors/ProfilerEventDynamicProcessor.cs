@@ -114,6 +114,15 @@ namespace EtwPerformanceProfiler
         }
 
         /// <summary>
+        /// Calculates maximum relative time stamp.
+        /// </summary>
+        /// <returns>Maximum relative time stamp.</returns>
+        public double MaxRelativeTimeStamp()
+        {
+            return this.eventAggregator.MaxRelativeTimeStamp();
+        }
+
+        /// <summary>
         /// Disposes the object.
         /// </summary>
         /// <param name="disposing">True if managed resources should be disposed; otherwise, false.</param>

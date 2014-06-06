@@ -17,11 +17,6 @@ namespace EtwPerformanceProfiler
     public class EtwPerformanceProfiler : IDisposable
     {
         /// <summary>
-        /// The maximum length of the statement which can be inserted into the table.
-        /// </summary>
-        private const int MaxStatementNameLength = 250;
-
-        /// <summary>
         /// The associated event processor.
         /// </summary>
         private DynamicProfilerEventProcessor dynamicProfilerEventProcessor;
@@ -30,6 +25,11 @@ namespace EtwPerformanceProfiler
         /// The call tree of all the aggregated method and SQL statement calls parsed from the ETW events
         /// </summary>
         private IEnumerator<AggregatedEventNode> callTree;
+
+        /// <summary>
+        /// Max relative time stamp for the currect profiling session.
+        /// </summary>
+        private double maxRelativeTimeStamp;
 
         /// <summary>
         /// Gets the call tree's current statement's owning object id.
@@ -49,14 +49,7 @@ namespace EtwPerformanceProfiler
         {
             get
             {
-                string statementName = this.callTree.Current.StatementName;
-
-                if (statementName.Length > MaxStatementNameLength)
-                {
-                    statementName = statementName.Substring(0, MaxStatementNameLength);
-                }
-
-                return statementName;
+                return this.callTree.Current.StatementName;
             }
         }
             
@@ -79,6 +72,39 @@ namespace EtwPerformanceProfiler
             get
             {
                 return (long)this.callTree.Current.DurationMSec;
+            }
+        }
+
+        /// <summary>
+        /// Gets call tree's current statements min duration in miliseconds
+        /// </summary>
+        public long CallTreeCurrentStatementMinDurationMs
+        {
+            get
+            {
+                return (long)this.callTree.Current.MinDurationMSec;
+            }
+        }
+
+        /// <summary>
+        /// Gets call tree's current statements max duration in miliseconds
+        /// </summary>
+        public long CallTreeCurrentStatementMaxDurationMs
+        {
+            get
+            {
+                return (long)this.callTree.Current.MaxDurationMSec;
+            }
+        }
+
+        /// <summary>
+        /// Gets call tree's current statements duration from the end of profiling.
+        /// </summary>
+        public long CallTreeCurrentStatementLastActiveMs
+        {
+            get
+            {
+                return (long)(this.maxRelativeTimeStamp - (long)this.callTree.Current.MaxRelativeTimeStampMSec);
             }
         }
 
@@ -174,6 +200,8 @@ namespace EtwPerformanceProfiler
             this.dynamicProfilerEventProcessor.Stop();
 
             this.callTree = this.dynamicProfilerEventProcessor.FlattenCallTree().GetEnumerator();
+
+            this.maxRelativeTimeStamp = this.dynamicProfilerEventProcessor.MaxRelativeTimeStamp();
         }
 
         /// <summary>
@@ -194,6 +222,8 @@ namespace EtwPerformanceProfiler
                 profilerEventEtlFileProcessor.ProcessEtlFile();
 
                 this.callTree = profilerEventEtlFileProcessor.FlattenCallTree().GetEnumerator();
+
+                this.maxRelativeTimeStamp = profilerEventEtlFileProcessor.MaxRelativeTimeStamp();
             }
         }
 
