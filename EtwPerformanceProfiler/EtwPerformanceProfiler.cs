@@ -31,6 +31,14 @@ namespace EtwPerformanceProfiler
         /// </summary>
         private double maxRelativeTimeStamp;
 
+        public int CallTreeCurrentStatementSessionId
+        {
+            get
+            {
+                return this.callTree.Current.SessionId;
+            }
+        }
+
         /// <summary>
         /// Gets the call tree's current statement's owning object id.
         /// </summary>
@@ -41,7 +49,7 @@ namespace EtwPerformanceProfiler
                 return this.callTree.Current.ObjectId;
             }
         }
-            
+
         /// <summary>
         /// Gets the call tree's current statement.
         /// </summary>
@@ -52,7 +60,7 @@ namespace EtwPerformanceProfiler
                 return this.callTree.Current.StatementName;
             }
         }
-            
+
         /// <summary>
         /// Gets the current line number on the call tree.
         /// </summary>
@@ -235,7 +243,7 @@ namespace EtwPerformanceProfiler
         {
             return this.callTree.MoveNext();
         }
-            
+
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>

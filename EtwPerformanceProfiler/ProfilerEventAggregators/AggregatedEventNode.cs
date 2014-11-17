@@ -15,72 +15,77 @@ namespace EtwPerformanceProfiler
     /// <summary>
     /// Represents the aggregated call tree.
     /// </summary>
-    internal class AggregatedEventNode
+    public class AggregatedEventNode
     {
+        /// <summary>
+        /// Gets or sets the Session id.
+        /// </summary>
+        public int SessionId { get; set; }
+
         /// <summary>
         /// Gets or sets the type of the object.
         /// </summary>
-        internal string ObjectType { get; private set; }
-
+        public string ObjectType { get; private set; }
         /// <summary>
         /// Gets or sets the object id.
         /// </summary>
-        internal int ObjectId { get; private set; }
+
+        public int ObjectId { get; private set; }
 
         /// <summary>
         /// Gets or sets the line no.
         /// </summary>
-        internal int LineNo { get; private set; }
+        public int LineNo { get; private set; }
 
         /// <summary>
         /// Gets or sets the name of the Statement.
         /// </summary>
-        internal string StatementName { get; set; }
+        public string StatementName { get; set; }
 
         /// <summary>
         /// Gets or sets the duration in MS.
         /// </summary>
-        internal double DurationMSec { get; set; }
+        public double DurationMSec { get; set; }
 
         /// <summary>
         /// Gets or sets the min duration in MS.
         /// </summary>
-        internal double MinDurationMSec { get; set; }
+        public double MinDurationMSec { get; set; }
 
         /// <summary>
         /// Gets or sets the max duration in MS.
         /// </summary>
-        internal double MaxDurationMSec { get; set; }
+        public double MaxDurationMSec { get; set; }
 
         /// <summary>
         /// Gets the children of the current node.
         /// </summary>
-        internal List<AggregatedEventNode> Children { get; private set; }
+        public List<AggregatedEventNode> Children { get; private set; }
 
         /// <summary>
         /// Gets or sets the number times we executed this statement.
         /// </summary>
-        internal int HitCount { get; private set; }
+        public int HitCount { get; private set; }
 
         /// <summary>
         /// Gets or sets the time stamp in MS.
         /// </summary>
-        internal double TimeStampRelativeMSec { get; private set; }
+        public double TimeStampRelativeMSec { get; private set; }
 
         /// <summary>
         /// Gets or sets the min time stamp in MS.
         /// </summary>
-        internal double MinRelativeTimeStampMSec { get; private set; }
+        public double MinRelativeTimeStampMSec { get; private set; }
 
         /// <summary>
         /// Gets or sets the max time stamp in MS.
         /// </summary>
-        internal double MaxRelativeTimeStampMSec { get; private set; }
+        public double MaxRelativeTimeStampMSec { get; private set; }
 
         /// <summary>
         /// Gets or sets the parent node.
         /// </summary>
-        internal AggregatedEventNode Parent { get; private set; }
+        public AggregatedEventNode Parent { get; private set; }
 
         /// <summary>
         /// Gets or sets the original type of the node.
@@ -101,7 +106,7 @@ namespace EtwPerformanceProfiler
         /// <summary>
         /// Depth of the current element in the tree.
         /// </summary>
-        internal int Depth { get; set; }
+        public int Depth { get; set; }
 
         /// <summary>
         /// Returns true if this is the none AL event.
@@ -122,7 +127,7 @@ namespace EtwPerformanceProfiler
                 return this.SubType == EventSubType.AlEvent;
             }
         }
-             
+
         /// <summary>
         /// Initializes a new instance of the <see cref="AggregatedEventNode"/> class.
         /// </summary>
@@ -143,7 +148,8 @@ namespace EtwPerformanceProfiler
         {
             Debug.Assert(profilerEvent.Type == EventType.Statement || profilerEvent.Type == EventType.StartMethod);
 
-            AggregatedEventNode res = this.Children.Find(e => 
+            AggregatedEventNode res = this.Children.Find(e =>
+                e.SessionId == profilerEvent.SessionId &&
                 e.ObjectType == profilerEvent.ObjectType &&
                 e.ObjectId == profilerEvent.ObjectId &&
                 e.LineNo == profilerEvent.LineNo &&
@@ -161,16 +167,17 @@ namespace EtwPerformanceProfiler
             }
 
             res = new AggregatedEventNode(this)
-                {
-                    ObjectType = profilerEvent.ObjectType,
-                    ObjectId = profilerEvent.ObjectId,
-                    LineNo = profilerEvent.LineNo,
-                    StatementName = profilerEvent.StatementName,
-                    TimeStampRelativeMSec = profilerEvent.TimeStampRelativeMSec,
-                    OriginalType = profilerEvent.Type,
-                    EvaluatedType = profilerEvent.Type,
-                    SubType = profilerEvent.SubType,
-                };
+            {
+                SessionId = profilerEvent.SessionId,
+                ObjectType = profilerEvent.ObjectType,
+                ObjectId = profilerEvent.ObjectId,
+                LineNo = profilerEvent.LineNo,
+                StatementName = profilerEvent.StatementName,
+                TimeStampRelativeMSec = profilerEvent.TimeStampRelativeMSec,
+                OriginalType = profilerEvent.Type,
+                EvaluatedType = profilerEvent.Type,
+                SubType = profilerEvent.SubType,
+            };
 
             this.Children.Add(res);
 

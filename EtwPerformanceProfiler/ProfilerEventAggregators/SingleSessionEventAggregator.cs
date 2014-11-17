@@ -21,7 +21,7 @@ namespace EtwPerformanceProfiler
         internal const string StopEventIsMissing = "Stop event is missing: ";
 
         #region Private members
-      
+
         /// <summary>
         /// The profiling session id
         /// </summary>
@@ -59,6 +59,11 @@ namespace EtwPerformanceProfiler
 
         private bool firstEvent;
 
+        /// <summary>
+        /// <c>true</c> if event processing is suspended.
+        /// </summary>
+        private bool suspended = false;
+
         #endregion
 
         /// <summary>
@@ -80,9 +85,11 @@ namespace EtwPerformanceProfiler
         /// </summary>
         public void Initialize()
         {
+            // create the root node for the session
             this.aggregatedCallTree = new AggregatedEventNode
             {
-                StatementName = "Session: " + this.profilingSessionId + ";"
+                StatementName = "Session: " + this.profilingSessionId + ";",
+                SessionId = this.profilingSessionId
             };
 
             this.currentAggregatedEventNode = aggregatedCallTree;
@@ -133,6 +140,11 @@ namespace EtwPerformanceProfiler
         /// <param name="traceEvent">The trace event.</param>
         public void AddEtwEventToAggregatedCallTree(TraceEvent traceEvent)
         {
+            if (this.suspended)
+            {
+                return;
+            }
+
             int statementIndex;
             EventType eventType;
             EventSubType eventSubType;
@@ -178,16 +190,16 @@ namespace EtwPerformanceProfiler
             {
                 // We don't have object type and id for the non AL events.
 
-                objectType = (string) traceEvent.PayloadValue(NavEventsPayloadIndexes.ObjectTypePayloadIndex);
-                objectId = (int) traceEvent.PayloadValue(NavEventsPayloadIndexes.ObjectIdPayloadIndex);
+                objectType = (string)traceEvent.PayloadValue(NavEventsPayloadIndexes.ObjectTypePayloadIndex);
+                objectId = (int)traceEvent.PayloadValue(NavEventsPayloadIndexes.ObjectIdPayloadIndex);
             }
 
             int lineNo = 0;
-            if ((int) traceEvent.ID == NavEvents.ALFunctionStatement)
+            if ((int)traceEvent.ID == NavEvents.ALFunctionStatement)
             {
                 // Only statements have line numbers.
 
-                lineNo = (int) traceEvent.PayloadValue(NavEventsPayloadIndexes.LineNoPayloadIndex);
+                lineNo = (int)traceEvent.PayloadValue(NavEventsPayloadIndexes.LineNoPayloadIndex);
             }
 
             string statement;
@@ -211,6 +223,7 @@ namespace EtwPerformanceProfiler
 
             ProfilerEvent? currentProfilerEvent = new ProfilerEvent
             {
+                SessionId = sessionId,
                 Type = eventType,
                 SubType = eventSubType,
                 ObjectType = objectType,
@@ -262,7 +275,7 @@ namespace EtwPerformanceProfiler
             ref AggregatedEventNode currentAggregatedEventNode)
         {
             bool skipCurrentEvent;
-            if (PopEventFromCallStackIfSomeEventsWereMissing(previousProfilerEvent, currentProfilerEvent,ref currentAggregatedEventNode, out skipCurrentEvent))
+            if (PopEventFromCallStackIfSomeEventsWereMissing(previousProfilerEvent, currentProfilerEvent, ref currentAggregatedEventNode, out skipCurrentEvent))
             {
                 return skipCurrentEvent;
             }
@@ -304,6 +317,7 @@ namespace EtwPerformanceProfiler
 
                 ProfilerEvent missingProfilerEvent = new ProfilerEvent
                 {
+                    SessionId = currentAggregatedEventNode.SessionId,
                     ObjectType = currentAggregatedEventNode.ObjectType,
                     ObjectId = currentAggregatedEventNode.ObjectId,
                     LineNo = currentAggregatedEventNode.LineNo,
@@ -416,10 +430,10 @@ namespace EtwPerformanceProfiler
         {
             if (currentAggregatedEventNode.Parent != null)
             {
-                    // We need to calculate duration for the previous statement and pop it from the statement call stack.
+                // We need to calculate duration for the previous statement and pop it from the statement call stack.
                 if (currentAggregatedEventNode.EvaluatedType == EventType.Statement ||
                     // Always close non events.
-                    currentProfilerEvent.Value.IsNonAlEvent) 
+                    currentProfilerEvent.Value.IsNonAlEvent)
                 {
                     currentAggregatedEventNode = currentAggregatedEventNode.PopEventFromCallStackAndCalculateDuration(currentProfilerEvent.Value.TimeStampRelativeMSec);
                 }
@@ -471,6 +485,22 @@ namespace EtwPerformanceProfiler
                     this.ReduceTree(node);
                 }
             }
+        }
+
+        /// <summary>
+        /// Suspend event processing.
+        /// </summary>
+        public void Suspend()
+        {
+            this.suspended = true;
+        }
+
+        /// <summary>
+        /// Resume event processing.
+        /// </summary>
+        public void Resume()
+        {
+            this.suspended = false;
         }
     }
 }

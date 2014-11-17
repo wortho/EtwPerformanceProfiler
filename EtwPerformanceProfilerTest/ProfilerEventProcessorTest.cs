@@ -22,6 +22,7 @@ namespace EtwPerformanceProfilerTest
                 {        
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.Statement,
                         SubType = EventSubType.AlEvent,
@@ -30,6 +31,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.StartMethod,
                         SubType = EventSubType.AlEvent,
@@ -38,6 +40,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.Statement,
                         SubType = EventSubType.AlEvent,
@@ -46,6 +49,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.StopMethod,
                         SubType = EventSubType.AlEvent,
@@ -54,6 +58,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 0,
                         Type = EventType.StartMethod,
                         StatementName = "SQL"
@@ -61,6 +66,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 0,
                         Type = EventType.StopMethod,
                         StatementName = "SQL"
@@ -101,6 +107,7 @@ namespace EtwPerformanceProfilerTest
                 {
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 0,
                         Type = EventType.StartMethod,
                         SubType = EventSubType.SystemEvent,
@@ -109,6 +116,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.StartMethod,
                         SubType = EventSubType.AlEvent,
@@ -117,6 +125,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.Statement,
                         SubType = EventSubType.AlEvent,
@@ -125,6 +134,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.StopMethod,
                         SubType = EventSubType.AlEvent,
@@ -133,6 +143,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 0,
                         Type = EventType.StartMethod,
                         StatementName = "SQL"
@@ -140,6 +151,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 0,
                         Type = EventType.StopMethod,
                         StatementName = "SQL"
@@ -147,6 +159,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.StopMethod, // not start event for this stop.
                         SubType = EventSubType.AlEvent,
@@ -155,6 +168,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.StopMethod, // not start event for this stop.
                         SubType = EventSubType.AlEvent,
@@ -163,6 +177,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 0,
                         Type = EventType.StopMethod,
                         SubType = EventSubType.SystemEvent,
@@ -214,6 +229,7 @@ namespace EtwPerformanceProfilerTest
                 {
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 0,
                         Type = EventType.StartMethod,
                         SubType = EventSubType.SystemEvent,
@@ -222,6 +238,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.StartMethod,
                         SubType = EventSubType.AlEvent,
@@ -230,6 +247,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.Statement,
                         SubType = EventSubType.AlEvent,
@@ -238,6 +256,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.StopMethod,
                         SubType = EventSubType.AlEvent,
@@ -246,6 +265,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 0,
                         Type = EventType.StartMethod,
                         StatementName = "SQL"
@@ -253,6 +273,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 0,
                         Type = EventType.StopMethod,
                         StatementName = "SQL"
@@ -260,6 +281,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 0,
                         Type = EventType.StopMethod,
                         SubType = EventSubType.SystemEvent,
@@ -298,6 +320,7 @@ namespace EtwPerformanceProfilerTest
                 {
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 0,
                         Type = EventType.StartMethod,
                         StatementName = "SQL1"
@@ -305,6 +328,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 0,
                         Type = EventType.StartMethod,
                         StatementName = "SQL2"
@@ -312,6 +336,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 0,
                         Type = EventType.StopMethod,
                         StatementName = "SQL2"
@@ -352,6 +377,7 @@ namespace EtwPerformanceProfilerTest
                 {
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 0,
                         Type = EventType.StartMethod,
                         StatementName = "SQL1"
@@ -359,6 +385,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.StartMethod,
                         SubType = EventSubType.AlEvent,
@@ -367,6 +394,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.StopMethod,
                         SubType = EventSubType.AlEvent,
@@ -409,6 +437,7 @@ namespace EtwPerformanceProfilerTest
                 {
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.StartMethod,
                         SubType = EventSubType.AlEvent,
@@ -417,6 +446,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 0,
                         Type = EventType.StartMethod,
                         StatementName = "SQL1"
@@ -424,6 +454,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 0,
                         Type = EventType.StopMethod,
                         StatementName = "SQL1"
@@ -431,6 +462,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 0,
                         Type = EventType.StartMethod,
                         StatementName = "SQL2"
@@ -438,6 +470,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 0,
                         Type = EventType.StopMethod,
                         StatementName = "SQL2"
@@ -445,6 +478,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.StopMethod,
                         SubType = EventSubType.AlEvent,
@@ -482,6 +516,7 @@ namespace EtwPerformanceProfilerTest
                 {
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 0,
                         Type = EventType.StartMethod,
                         SubType = EventSubType.SystemEvent,
@@ -490,6 +525,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 0,
                         Type = EventType.StartMethod,
                         StatementName = "SQL1"
@@ -497,6 +533,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 0,
                         Type = EventType.StopMethod,
                         StatementName = "SQL1"
@@ -504,6 +541,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 0,
                         Type = EventType.StartMethod,
                         StatementName = "SQL2"
@@ -518,6 +556,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 0,
                         Type = EventType.StopMethod,
                         SubType = EventSubType.SystemEvent,
@@ -555,6 +594,7 @@ namespace EtwPerformanceProfilerTest
                 {        
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.Statement,
                         SubType = EventSubType.AlEvent,
@@ -563,6 +603,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.StartMethod,
                         SubType = EventSubType.AlEvent,
@@ -571,6 +612,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.Statement,
                         SubType = EventSubType.AlEvent,
@@ -579,6 +621,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.StopMethod,
                         SubType = EventSubType.AlEvent,
@@ -587,6 +630,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.Statement,
                         SubType = EventSubType.AlEvent,
@@ -603,6 +647,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.Statement,
                         SubType = EventSubType.AlEvent,
@@ -611,6 +656,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.StopMethod,
                         SubType = EventSubType.AlEvent,
@@ -660,10 +706,11 @@ namespace EtwPerformanceProfilerTest
         [TestMethod]
         public void BuildAggregatedCallTreeNestedFunctionsTest()
         {
-            List<ProfilerEvent>  profilerEventList = new List<ProfilerEvent>
+            List<ProfilerEvent> profilerEventList = new List<ProfilerEvent>
                 {
                     new ProfilerEvent
                         {
+                            SessionId = 1,
                             ObjectId = 1,
                             Type = EventType.Statement,
                             SubType = EventSubType.AlEvent,
@@ -671,6 +718,7 @@ namespace EtwPerformanceProfilerTest
                         }, // 0
                     new ProfilerEvent
                         {
+                            SessionId = 1,
                             ObjectId = 1,
                             Type = EventType.Statement,
                             SubType = EventSubType.AlEvent,
@@ -730,6 +778,7 @@ namespace EtwPerformanceProfilerTest
             profilerEventList.Add(
                 new ProfilerEvent
                 {
+                    SessionId = 1,
                     ObjectId = 1,
                     Type = EventType.Statement,
                     SubType = EventSubType.AlEvent,
@@ -739,6 +788,7 @@ namespace EtwPerformanceProfilerTest
             profilerEventList.Add(
                 new ProfilerEvent
                 {
+                    SessionId = 1,
                     ObjectId = 1,
                     Type = EventType.StartMethod,
                     SubType = EventSubType.AlEvent,
@@ -748,6 +798,7 @@ namespace EtwPerformanceProfilerTest
             profilerEventList.Add(
                 new ProfilerEvent
                 {
+                    SessionId = 1,
                     ObjectId = 1,
                     Type = EventType.Statement,
                     SubType = EventSubType.AlEvent,
@@ -757,6 +808,7 @@ namespace EtwPerformanceProfilerTest
             profilerEventList.Add(
                 new ProfilerEvent
                 {
+                    SessionId = 1,
                     ObjectId = 1,
                     Type = EventType.Statement,
                     SubType = EventSubType.AlEvent,
@@ -766,6 +818,7 @@ namespace EtwPerformanceProfilerTest
             profilerEventList.Add(
                 new ProfilerEvent
                 {
+                    SessionId = 1,
                     ObjectId = 0,
                     Type = EventType.StartMethod,
                     SubType = EventSubType.AlEvent,
@@ -775,6 +828,7 @@ namespace EtwPerformanceProfilerTest
             profilerEventList.Add(
                 new ProfilerEvent
                 {
+                    SessionId = 1,
                     ObjectId = 0,
                     Type = EventType.StopMethod,
                     SubType = EventSubType.AlEvent,
@@ -784,6 +838,7 @@ namespace EtwPerformanceProfilerTest
             profilerEventList.Add(
                 new ProfilerEvent
                 {
+                    SessionId = 1,
                     ObjectId = 1,
                     Type = EventType.Statement,
                     SubType = EventSubType.AlEvent,
@@ -793,6 +848,7 @@ namespace EtwPerformanceProfilerTest
             profilerEventList.Add(
                 new ProfilerEvent
                 {
+                    SessionId = 1,
                     ObjectId = 1,
                     Type = EventType.Statement,
                     SubType = EventSubType.AlEvent,
@@ -802,6 +858,7 @@ namespace EtwPerformanceProfilerTest
             profilerEventList.Add(
                 new ProfilerEvent
                 {
+                    SessionId = 1,
                     ObjectId = 1,
                     Type = EventType.Statement,
                     SubType = EventSubType.AlEvent,
@@ -811,6 +868,7 @@ namespace EtwPerformanceProfilerTest
             profilerEventList.Add(
                 new ProfilerEvent
                 {
+                    SessionId = 1,
                     ObjectId = 1,
                     Type = EventType.StartMethod,
                     SubType = EventSubType.AlEvent,
@@ -820,6 +878,7 @@ namespace EtwPerformanceProfilerTest
             profilerEventList.Add(
                 new ProfilerEvent
                 {
+                    SessionId = 1,
                     ObjectId = 1,
                     Type = EventType.Statement,
                     SubType = EventSubType.AlEvent,
@@ -829,6 +888,7 @@ namespace EtwPerformanceProfilerTest
             profilerEventList.Add(
                 new ProfilerEvent
                 {
+                    SessionId = 1,
                     ObjectId = 1,
                     Type = EventType.StartMethod,
                     SubType = EventSubType.AlEvent,
@@ -838,6 +898,7 @@ namespace EtwPerformanceProfilerTest
             profilerEventList.Add(
                 new ProfilerEvent
                 {
+                    SessionId = 1,
                     ObjectId = 1,
                     Type = EventType.Statement,
                     SubType = EventSubType.AlEvent,
@@ -847,6 +908,7 @@ namespace EtwPerformanceProfilerTest
             profilerEventList.Add(
                 new ProfilerEvent
                 {
+                    SessionId = 1,
                     ObjectId = 1,
                     Type = EventType.Statement,
                     SubType = EventSubType.AlEvent,
@@ -856,6 +918,7 @@ namespace EtwPerformanceProfilerTest
             profilerEventList.Add(
                 new ProfilerEvent
                 {
+                    SessionId = 1,
                     ObjectId = 1,
                     Type = EventType.StopMethod,
                     SubType = EventSubType.AlEvent,
@@ -865,6 +928,7 @@ namespace EtwPerformanceProfilerTest
             profilerEventList.Add(
                 new ProfilerEvent
                 {
+                    SessionId = 1,
                     ObjectId = 1,
                     Type = EventType.Statement,
                     SubType = EventSubType.AlEvent,
@@ -874,6 +938,7 @@ namespace EtwPerformanceProfilerTest
             profilerEventList.Add(
                 new ProfilerEvent
                 {
+                    SessionId = 1,
                     ObjectId = 1,
                     Type = EventType.StopMethod,
                     SubType = EventSubType.AlEvent,
@@ -883,6 +948,7 @@ namespace EtwPerformanceProfilerTest
             profilerEventList.Add(
                 new ProfilerEvent
                 {
+                    SessionId = 1,
                     ObjectId = 1,
                     Type = EventType.StopMethod,
                     SubType = EventSubType.AlEvent,
@@ -911,6 +977,7 @@ namespace EtwPerformanceProfilerTest
                 {
                     new ProfilerEvent
                         {
+                            SessionId = 1,
                             ObjectId = 1,
                             Type = EventType.Statement,
                             SubType = EventSubType.AlEvent,
@@ -918,6 +985,7 @@ namespace EtwPerformanceProfilerTest
                         }, // 0
                     new ProfilerEvent
                         {
+                            SessionId = 1,
                             ObjectId = 1,
                             Type = EventType.StartMethod,
                             SubType = EventSubType.AlEvent,
@@ -925,6 +993,7 @@ namespace EtwPerformanceProfilerTest
                         }, // 1
                     new ProfilerEvent
                         {
+                            SessionId = 1,
                             ObjectId = 1,
                             Type = EventType.Statement,
                             SubType = EventSubType.AlEvent,
@@ -932,6 +1001,7 @@ namespace EtwPerformanceProfilerTest
                         }, // 2
                     new ProfilerEvent
                         {
+                            SessionId = 1,
                             ObjectId = 1,
                             Type = EventType.Statement,
                             SubType = EventSubType.AlEvent,
@@ -939,6 +1009,7 @@ namespace EtwPerformanceProfilerTest
                         }, // 3
                     new ProfilerEvent
                         {
+                            SessionId = 1,
                             ObjectId = 1,
                             Type = EventType.StopMethod,
                             SubType = EventSubType.AlEvent,
@@ -946,6 +1017,7 @@ namespace EtwPerformanceProfilerTest
                         }, // 4
                     new ProfilerEvent
                         {
+                            SessionId = 1,
                             ObjectId = 1,
                             Type = EventType.StartMethod,
                             SubType = EventSubType.AlEvent,
@@ -953,6 +1025,7 @@ namespace EtwPerformanceProfilerTest
                         }, // 5
                     new ProfilerEvent
                         {
+                            SessionId = 1,
                             ObjectId = 1,
                             Type = EventType.Statement,
                             SubType = EventSubType.AlEvent,
@@ -960,6 +1033,7 @@ namespace EtwPerformanceProfilerTest
                         }, // 6
                     new ProfilerEvent
                         {
+                            SessionId = 1,
                             ObjectId = 1,
                             Type = EventType.Statement,
                             SubType = EventSubType.AlEvent,
@@ -967,6 +1041,7 @@ namespace EtwPerformanceProfilerTest
                         }, // 7
                     new ProfilerEvent
                         {
+                            SessionId = 1,
                             ObjectId = 1,
                             Type = EventType.StopMethod,
                             SubType = EventSubType.AlEvent,
@@ -974,6 +1049,7 @@ namespace EtwPerformanceProfilerTest
                         }, // 8
                     new ProfilerEvent
                         {
+                            SessionId = 1,
                             ObjectId = 1,
                             Type = EventType.Statement,
                             SubType = EventSubType.AlEvent,
@@ -1022,6 +1098,7 @@ namespace EtwPerformanceProfilerTest
                 {
                     new ProfilerEvent
                         {
+                            SessionId = 1,
                             ObjectId = 1,
                             Type = EventType.StartMethod,
                             SubType = EventSubType.AlEvent,
@@ -1029,6 +1106,7 @@ namespace EtwPerformanceProfilerTest
                         }, // 0
                     new ProfilerEvent
                         {
+                            SessionId = 1,
                             ObjectId = 1,
                             Type = EventType.Statement,
                             SubType = EventSubType.AlEvent,
@@ -1036,6 +1114,7 @@ namespace EtwPerformanceProfilerTest
                         }, // 1
                     new ProfilerEvent
                         {
+                            SessionId = 1,
                             ObjectId = 1,
                             Type = EventType.Statement,
                             SubType = EventSubType.AlEvent,
@@ -1043,6 +1122,7 @@ namespace EtwPerformanceProfilerTest
                         }, // 2
                     new ProfilerEvent
                         {
+                            SessionId = 1,
                             ObjectId = 1,
                             Type = EventType.StopMethod,
                             SubType = EventSubType.AlEvent,
@@ -1050,6 +1130,7 @@ namespace EtwPerformanceProfilerTest
                         }, // 3
                     new ProfilerEvent
                         {
+                            SessionId = 1,
                             ObjectId = 1,
                             Type = EventType.StartMethod,
                             SubType = EventSubType.AlEvent,
@@ -1057,6 +1138,7 @@ namespace EtwPerformanceProfilerTest
                         }, // 4
                     new ProfilerEvent
                         {
+                            SessionId = 1,
                             ObjectId = 1,
                             Type = EventType.Statement,
                             SubType = EventSubType.AlEvent,
@@ -1064,6 +1146,7 @@ namespace EtwPerformanceProfilerTest
                         }, // 5
                     new ProfilerEvent
                         {
+                            SessionId = 1,
                             ObjectId = 1,
                             Type = EventType.Statement,
                             SubType = EventSubType.AlEvent,
@@ -1112,7 +1195,7 @@ namespace EtwPerformanceProfilerTest
 
             for (int i = 0; i < 10; ++i)
             {
-                string newStatement = new string(new [] {'s', 't', 'a', 't', 'e', 'm', 'e', 'n', 't'});
+                string newStatement = new string(new[] { 's', 't', 'a', 't', 'e', 'm', 'e', 'n', 't' });
                 string cahcedStatement = profilerEventProcessor.GetStatementFromTheCache(newStatement);
 
                 Assert.IsTrue(object.ReferenceEquals(Statement, cahcedStatement));
@@ -1170,6 +1253,7 @@ namespace EtwPerformanceProfilerTest
                 {        
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.StartMethod,
                         SubType = EventSubType.AlEvent,
@@ -1178,6 +1262,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.Statement,
                         SubType = EventSubType.AlEvent,
@@ -1186,6 +1271,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.StartMethod,
                         SubType = EventSubType.AlEvent,
@@ -1194,6 +1280,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.Statement,
                         SubType = EventSubType.AlEvent,
@@ -1202,6 +1289,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.StopMethod,
                         SubType = EventSubType.AlEvent,
@@ -1210,6 +1298,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.Statement,
                         SubType = EventSubType.AlEvent,
@@ -1218,6 +1307,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.StopMethod,
                         SubType = EventSubType.AlEvent,
@@ -1226,6 +1316,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.StartMethod,
                         SubType = EventSubType.AlEvent,
@@ -1234,6 +1325,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.Statement,
                         SubType = EventSubType.AlEvent,
@@ -1242,6 +1334,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.Statement,
                         SubType = EventSubType.AlEvent,
@@ -1250,6 +1343,7 @@ namespace EtwPerformanceProfilerTest
 
                     new ProfilerEvent
                     {
+                        SessionId = 1,
                         ObjectId = 1,
                         Type = EventType.StopMethod,
                         SubType = EventSubType.AlEvent,

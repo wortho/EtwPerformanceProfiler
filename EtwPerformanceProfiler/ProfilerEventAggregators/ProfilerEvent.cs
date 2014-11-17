@@ -76,6 +76,11 @@ namespace EtwPerformanceProfiler
         internal EventSubType SubType { get; set; }
 
         /// <summary>
+        /// Gets or sets the session id.
+        /// </summary>
+        internal int SessionId { get; set; }
+
+        /// <summary>
         /// Gets or sets the type of the object.
         /// </summary>
         internal string ObjectType { get; set; }
@@ -130,7 +135,9 @@ namespace EtwPerformanceProfiler
 
             ProfilerEvent other = (ProfilerEvent)obj;
 
-            return this.Type.Equals(other.Type) && this.ObjectType.Equals(other.ObjectType)
+            return this.Type.Equals(other.Type)
+                   && this.SessionId.Equals(other.SessionId)
+                   && this.ObjectType.Equals(other.ObjectType)
                    && this.ObjectId.Equals(other.ObjectId) && this.LineNo.Equals(other.LineNo)
                    && this.StatementName.Equals(other.StatementName) &&
                    this.TimeStampRelativeMSec.Equals(other.TimeStampRelativeMSec);
@@ -164,7 +171,7 @@ namespace EtwPerformanceProfiler
         /// <returns>A hash code</returns>
         public override int GetHashCode()
         {
-            return this.Type.GetHashCode() ^ this.ObjectId.GetHashCode() ^ this.ObjectType.GetHashCode()
+            return this.Type.GetHashCode() ^ this.SessionId.GetHashCode() ^ this.ObjectId.GetHashCode() ^ this.ObjectType.GetHashCode()
                    ^ this.StatementName.GetHashCode() ^ this.LineNo.GetHashCode() ^ this.TimeStampRelativeMSec.GetHashCode();
         }
     }
