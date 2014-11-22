@@ -13,7 +13,6 @@ Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
 		SccNumberOfProjects = 4
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs19
 		SccLocalPath0 = .
 		SccProjectUniqueName1 = EtwPerformanceProfiler\\EtwPerformanceProfiler.csproj
 		SccProjectName1 = EtwPerformanceProfiler
