@@ -1,0 +1,39 @@
+OBJECT Table 50010 IndexUsageView
+{
+  OBJECT-PROPERTIES
+  {
+    
+  }
+  PROPERTIES
+  {
+    DataPerCompany=No;
+    LinkedObject=Yes;
+    LinkedInTransaction=No;
+  }
+  FIELDS
+  {
+    { 1   ;   ;ObjectName          ;Text128        }
+    { 2   ;   ;IndexName           ;Text128        }
+    { 3   ;   ;IndexId             ;Integer        }
+    { 4   ;   ;UserSeeks           ;BigInteger     }
+    { 5   ;   ;UserScans           ;BigInteger     }
+    { 6   ;   ;UserLookups         ;BigInteger     }
+    { 7   ;   ;UserUpdates         ;BigInteger     }
+    { 8   ;   ;TableRows           ;BigInteger     }
+    { 9   ;   ;DropStatement       ;Text250        }
+  }
+  KEYS
+  {
+    {    ;ObjectName                              ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    END.
+  }
+}
+

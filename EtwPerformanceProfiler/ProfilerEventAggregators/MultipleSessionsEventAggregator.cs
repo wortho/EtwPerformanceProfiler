@@ -21,9 +21,14 @@ namespace EtwPerformanceProfiler
         private Dictionary<int, SingleSessionEventAggregator> sessionAggregators;
 
         /// <summary>
-        /// The threashold value. The aggregated call three will be filtered on values greater than the threshold.
+        /// The threshold value. The aggregated call three will be filtered on values greater than the threshold.
         /// </summary>
         private readonly long threshold;
+
+        /// <summary>
+        /// <c>true</c> if event processing is suspended.
+        /// </summary>
+        private bool suspended = false;
 
         /// <summary>
         /// Creates a new instance of the <see cref="MultipleSessionsEventAggregator"/> class.
@@ -42,6 +47,11 @@ namespace EtwPerformanceProfiler
         /// <param name="traceEvent">The trace event.</param>
         public void AddEtwEventToAggregatedCallTree(TraceEvent traceEvent)
         {
+            if (this.suspended)
+            {
+                return;
+            }
+
             int statementIndex;
             EventType eventType;
             EventSubType eventSubType;
@@ -101,6 +111,22 @@ namespace EtwPerformanceProfiler
         public IEnumerable<AggregatedEventNode> FlattenCallTree()
         {
             return this.sessionAggregators.SelectMany(singleSessionEventAggregator => singleSessionEventAggregator.Value.FlattenCallTree());
+        }
+
+        /// <summary>
+        /// Suspend event processing.
+        /// </summary>
+        public void Suspend()
+        {
+            this.suspended = true;
+        }
+
+        /// <summary>
+        /// Resume event processing.
+        /// </summary>
+        public void Resume()
+        {
+            this.suspended = false;
         }
     }
 }

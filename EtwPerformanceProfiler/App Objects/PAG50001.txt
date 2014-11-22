@@ -1,0 +1,162 @@
+OBJECT Page 50001 Performance Profiler Archive
+{
+  OBJECT-PROPERTIES
+  {
+    Date=;
+    Time=;
+    Version List=Performance Profiler;
+  }
+  PROPERTIES
+  {
+    Permissions=;
+    InsertAllowed=No;
+    DeleteAllowed=No;
+    ModifyAllowed=No;
+    SourceTable=Table50001;
+    PageType=Worksheet;
+    OnInit=BEGIN
+             IF FINDFIRST THEN
+               TargetSessionCode := "Session Code";
+           END;
+
+    OnOpenPage=BEGIN
+                 Rec.SETRANGE("Session Code",TargetSessionCode);
+               END;
+
+    OnAfterGetRecord=VAR
+                       LinesHit@1003 : Integer;
+                     BEGIN
+                     END;
+
+    ActionList=ACTIONS
+    {
+      { 1002    ;    ;ActionContainer;
+                      ActionContainerType=ActionItems }
+      { 1003    ;1   ;Action    ;
+                      Name=Calculate Ratio;
+                      Promoted=Yes;
+                      PromotedIsBig=Yes;
+                      Image=CalculateHierarchy;
+                      PromotedCategory=Process;
+                      OnAction=BEGIN
+                                 BaseDuration := Duration;
+                                 CurrPage.UPDATE;
+                               END;
+                                }
+    }
+  }
+  CONTROLS
+  {
+    { 1   ;0   ;Container ;
+                ContainerType=ContentArea }
+
+    { 16  ;1   ;Group     ;
+                CaptionML=ENU=Configuration;
+                GroupType=Group }
+
+    { 12  ;2   ;Field     ;
+                Name=Target Session Code;
+                Lookup=Yes;
+                SourceExpr=TargetSessionCode;
+                TableRelation="Performance Session Archived";
+                OnValidate=BEGIN
+                             Rec.SETRANGE("Session Code",TargetSessionCode);
+                             CurrPage.UPDATE;
+                           END;
+                            }
+
+    { 1005;2   ;Field     ;
+                Name=Duration Threshold;
+                SourceExpr=DurationThreshold;
+                OnValidate=BEGIN
+                             SETFILTER(Duration,'%1..',DurationThreshold);
+                             CurrPage.UPDATE;
+                           END;
+                            }
+
+    { 1004;2   ;Field     ;
+                Name=Base Duration;
+                SourceExpr=BaseDuration;
+                OnValidate=BEGIN
+                             CurrPage.UPDATE;
+                           END;
+                            }
+
+    { 2   ;1   ;Group     ;
+                Name=Call Tree;
+                Editable=FALSE;
+                IndentationColumnName=Indentation;
+                ShowAsTree=Yes;
+                GroupType=Repeater }
+
+    { 7   ;2   ;Field     ;
+                SourceExpr="Object Type";
+                Enabled=FALSE;
+                Editable=FALSE }
+
+    { 4   ;2   ;Field     ;
+                SourceExpr="Object ID" }
+
+    { 11  ;2   ;Field     ;
+                SourceExpr="Line No" }
+
+    { 5   ;2   ;Field     ;
+                SourceExpr=Statement }
+
+    { 9   ;2   ;Field     ;
+                CaptionML=ENU=Duration (ms);
+                SourceExpr=Duration;
+                Style=Attention }
+
+    { 13  ;2   ;Field     ;
+                SourceExpr=MinDuration }
+
+    { 10  ;2   ;Field     ;
+                SourceExpr=MaxDuration }
+
+    { 14  ;2   ;Field     ;
+                SourceExpr=LastActive }
+
+    { 3   ;2   ;Field     ;
+                SourceExpr=HitCount }
+
+    { 6   ;2   ;Field     ;
+                SourceExpr=Id }
+
+    { 8   ;2   ;Field     ;
+                SourceExpr="Session Code";
+                Visible=false }
+
+    { 1000;2   ;Field     ;
+                SourceExpr=Indentation }
+
+    { 1001;2   ;Field     ;
+                Name=Ratio;
+                CaptionML=ENU=Ratio %;
+                DecimalPlaces=3:3;
+                SourceExpr=GetRatio }
+
+  }
+  CODE
+  {
+    VAR
+      ProgressDialog@1004 : Dialog;
+      PerformanceProfiler@1000 : DotNet "'EtwPerformanceProfiler, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.EtwPerformanceProfiler.EtwPerformanceProfiler";
+      ProfilerStarted@1001 : Boolean INDATASET;
+      I@1002 : Integer;
+      TargetSessionCode@1003 : Code[20] INDATASET;
+      PleaseWaitCollectingData@1005 : TextConst 'ENU=Collecting performance data \\Please wait #1';
+      BaseDuration@1006 : Decimal;
+      DurationThreshold@1007 : Decimal;
+
+    LOCAL PROCEDURE GetRatio@1000() : Decimal;
+    BEGIN
+      IF BaseDuration <> 0 THEN
+        EXIT(Duration / BaseDuration * 100);
+    END;
+
+    BEGIN
+    END.
+  }
+}
+

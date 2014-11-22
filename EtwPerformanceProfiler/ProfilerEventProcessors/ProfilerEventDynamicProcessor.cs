@@ -15,11 +15,11 @@ namespace EtwPerformanceProfiler
     /// <summary>
     /// Defines the event processor class.
     /// </summary>
-    internal class DynamicProfilerEventProcessor : IDisposable
+    public class DynamicProfilerEventProcessor : IDisposable
     {
         #region Private members
 
-        private const int MultipleSessionsId = -1;
+        public const int MultipleSessionsId = -1;
       
         /// <summary>
         /// The name of the event source.
@@ -48,7 +48,7 @@ namespace EtwPerformanceProfiler
         /// </summary>
         /// <param name="sessionId">The session id.</param>
         /// <param name="threshold">The threshold value. The aggregated call tree will only show events greater than this.</param>
-        internal DynamicProfilerEventProcessor(int sessionId, long threshold = 0)
+        public DynamicProfilerEventProcessor(int sessionId, long threshold = 0)
         {
             if (sessionId == MultipleSessionsId)
             {
@@ -63,6 +63,14 @@ namespace EtwPerformanceProfiler
         }
 
         /// <summary>
+        /// Finalize makes sure that we dispose the object correctly.
+        /// </summary>
+        ~DynamicProfilerEventProcessor()
+        {
+            this.Dispose();
+        }
+
+        /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
         public void Dispose()
@@ -74,7 +82,7 @@ namespace EtwPerformanceProfiler
         /// <summary>
         /// Starts a profiling session.
         /// </summary>
-        internal void Start()
+        public void Start()
         {
             this.Initialize();
 
@@ -84,7 +92,7 @@ namespace EtwPerformanceProfiler
         /// <summary>
         /// Initializes state of the <see cref="DynamicProfilerEventProcessor"/>
         /// </summary>
-        private void Initialize()
+        public void Initialize()
         {
             this.eventAggregator.Initialize();
         }
@@ -93,7 +101,7 @@ namespace EtwPerformanceProfiler
         /// Stops the profiling session.
         /// </summary>
         /// <param name="buildAggregatedCallTree">true if the aggregated call is to be built.</param>
-        internal void Stop(bool buildAggregatedCallTree = true)
+        public void Stop(bool buildAggregatedCallTree = true)
         {
             if (this.etwEventDynamicProcessor != null)
             {
@@ -108,7 +116,7 @@ namespace EtwPerformanceProfiler
         /// Traverses the call stack tree.
         /// </summary>
         /// <returns>Flatten call tree.</returns>
-        internal IEnumerable<AggregatedEventNode> FlattenCallTree()
+        public IEnumerable<AggregatedEventNode> FlattenCallTree()
         {
             return this.eventAggregator.FlattenCallTree();
         }
@@ -120,6 +128,22 @@ namespace EtwPerformanceProfiler
         public double MaxRelativeTimeStamp()
         {
             return this.eventAggregator.MaxRelativeTimeStamp();
+        }
+
+        /// <summary>
+        /// Suspend event processing.
+        /// </summary>
+        public void Suspend()
+        {
+            this.eventAggregator.Suspend();
+        }
+
+        /// <summary>
+        /// Resume event processing.
+        /// </summary>
+        public void Resume()
+        {
+            this.eventAggregator.Resume();
         }
 
         /// <summary>

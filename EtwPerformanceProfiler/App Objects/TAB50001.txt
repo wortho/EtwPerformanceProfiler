@@ -1,0 +1,49 @@
+OBJECT Table 50001 Performance Profiler Archive
+{
+  OBJECT-PROPERTIES
+  {
+    Date=;
+    Time=;
+    Version List=Performance Profiler;
+  }
+  PROPERTIES
+  {
+    DataPerCompany=No;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Id                  ;Integer        }
+    { 3   ;   ;Indentation         ;Integer        }
+    { 4   ;   ;Object Type         ;Option        ;CaptionML=ENU=Object Type;
+                                                   OptionCaptionML=ENU=TableData,Table,Form,Report,Dataport,Codeunit,XMLport,MenuSuite,Page,Query,System,FieldNumber;
+                                                   OptionString=TableData,Table,Form,Report,Dataport,Codeunit,XMLport,MenuSuite,Page,Query,System,FieldNumber }
+    { 5   ;   ;Object ID           ;Integer       ;TableRelation=Object.ID WHERE (Type=FIELD(Object Type));
+                                                   TestTableRelation=No;
+                                                   CaptionML=ENU=Object ID }
+    { 6   ;   ;Line No             ;Integer        }
+    { 7   ;   ;Statement           ;Text250        }
+    { 8   ;   ;Duration            ;Decimal        }
+    { 9   ;   ;MinDuration         ;Decimal        }
+    { 10  ;   ;MaxDuration         ;Decimal        }
+    { 11  ;   ;LastActive          ;Decimal        }
+    { 12  ;   ;HitCount            ;Integer        }
+    { 13  ;   ;Total               ;Decimal       ;FieldClass=FlowField;
+                                                   CalcFormula=Sum("Performance Profiler Events".Duration WHERE (Indentation=CONST(0))) }
+    { 14  ;   ;FullStatement       ;BLOB           }
+    { 20  ;   ;Session Code        ;Code20         }
+  }
+  KEYS
+  {
+    {    ;Session Code,Id                         ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    END.
+  }
+}
+

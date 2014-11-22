@@ -127,7 +127,7 @@ namespace EtwPerformanceProfiler
                 return this.SubType == EventSubType.AlEvent;
             }
         }
-
+             
         /// <summary>
         /// Initializes a new instance of the <see cref="AggregatedEventNode"/> class.
         /// </summary>
@@ -167,17 +167,17 @@ namespace EtwPerformanceProfiler
             }
 
             res = new AggregatedEventNode(this)
-            {
-                SessionId = profilerEvent.SessionId,
-                ObjectType = profilerEvent.ObjectType,
-                ObjectId = profilerEvent.ObjectId,
-                LineNo = profilerEvent.LineNo,
-                StatementName = profilerEvent.StatementName,
-                TimeStampRelativeMSec = profilerEvent.TimeStampRelativeMSec,
-                OriginalType = profilerEvent.Type,
-                EvaluatedType = profilerEvent.Type,
-                SubType = profilerEvent.SubType,
-            };
+                {
+                    SessionId = profilerEvent.SessionId,
+                    ObjectType = profilerEvent.ObjectType,
+                    ObjectId = profilerEvent.ObjectId,
+                    LineNo = profilerEvent.LineNo,
+                    StatementName = profilerEvent.StatementName,
+                    TimeStampRelativeMSec = profilerEvent.TimeStampRelativeMSec,
+                    OriginalType = profilerEvent.Type,
+                    EvaluatedType = profilerEvent.Type,
+                    SubType = profilerEvent.SubType,
+                };
 
             this.Children.Add(res);
 

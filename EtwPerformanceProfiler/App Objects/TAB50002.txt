@@ -1,0 +1,40 @@
+OBJECT Table 50002 Performance Session Archived
+{
+  OBJECT-PROPERTIES
+  {
+    Date=;
+    Time=;
+    Version List=Performance Profiler;
+  }
+  PROPERTIES
+  {
+    DataCaptionFields=Code,Description;
+    OnDelete=VAR
+               PerformanceProfilerArchive@1000 : Record 50001;
+             BEGIN
+               PerformanceProfilerArchive.SETRANGE("Session Code",Code);
+               PerformanceProfilerArchive.DELETEALL;
+             END;
+
+    LookupPageID=Page50002;
+  }
+  FIELDS
+  {
+    { 1   ;   ;Code                ;Code20         }
+    { 2   ;   ;Description         ;Text250        }
+  }
+  KEYS
+  {
+    {    ;Code                                    ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    END.
+  }
+}
+
