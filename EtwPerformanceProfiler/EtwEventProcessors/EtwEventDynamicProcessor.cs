@@ -56,6 +56,11 @@ namespace ETWPerformanceProfiler
         private Task eventProcessingTask;
 
         /// <summary>
+        /// <c>true</c> if event processing should be stopped.
+        /// </summary>
+        private bool stopProcessing = false;
+
+        /// <summary>
         /// Has the object been disposed.
         /// </summary>
         private bool isDisposed;
@@ -88,6 +93,8 @@ namespace ETWPerformanceProfiler
         {
             this.StopProcessing();
 
+            this.stopProcessing = false;
+
             // Create new trace session.
             this.traceEventSession = new TraceEventSession(TraceEventSessionName, null);
             this.traceEventSession.StopOnDispose = true;
@@ -96,9 +103,17 @@ namespace ETWPerformanceProfiler
             this.traceEventSource = new ETWTraceEventSource(TraceEventSessionName, TraceEventSourceType.Session);
 
             DynamicTraceEventParser parser = new DynamicTraceEventParser(this.traceEventSource);
-            parser.All += this.traceEventHandler;
+            parser.All += (traceEvent) =>
+            {
+                if (this.stopProcessing)
+                {
+                    traceEventSource.StopProcessing();
+                }
 
-            // Add an additional provider prepresented by providerGuid
+                this.traceEventHandler(traceEvent);
+            };
+
+            // Add an additional provider represented by providerGuid
             this.traceEventSession.EnableProvider(this.providerGuid);
 
             // Enqueue on the thread pool's global queue. 
@@ -144,6 +159,7 @@ namespace ETWPerformanceProfiler
             {
                 if (this.traceEventSource != null)
                 {
+                    this.stopProcessing = true;
                     this.traceEventSource.StopProcessing();
 
                     this.eventProcessingTask.Wait();

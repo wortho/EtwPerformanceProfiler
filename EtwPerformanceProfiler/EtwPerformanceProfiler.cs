@@ -33,7 +33,7 @@ namespace EtwPerformanceProfiler
 
         public int CallTreeCurrentStatementSessionId
         {
-            get
+            get 
             {
                 return this.callTree.Current.SessionId;
             }

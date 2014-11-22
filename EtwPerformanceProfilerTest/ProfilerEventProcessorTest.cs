@@ -706,7 +706,7 @@ namespace EtwPerformanceProfilerTest
         [TestMethod]
         public void BuildAggregatedCallTreeNestedFunctionsTest()
         {
-            List<ProfilerEvent> profilerEventList = new List<ProfilerEvent>
+            List<ProfilerEvent>  profilerEventList = new List<ProfilerEvent>
                 {
                     new ProfilerEvent
                         {
@@ -1195,7 +1195,7 @@ namespace EtwPerformanceProfilerTest
 
             for (int i = 0; i < 10; ++i)
             {
-                string newStatement = new string(new[] { 's', 't', 'a', 't', 'e', 'm', 'e', 'n', 't' });
+                string newStatement = new string(new [] {'s', 't', 'a', 't', 'e', 'm', 'e', 'n', 't'});
                 string cahcedStatement = profilerEventProcessor.GetStatementFromTheCache(newStatement);
 
                 Assert.IsTrue(object.ReferenceEquals(Statement, cahcedStatement));

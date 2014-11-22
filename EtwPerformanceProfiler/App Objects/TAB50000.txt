@@ -2,9 +2,8 @@ OBJECT Table 50000 Performance Profiler Events
 {
   OBJECT-PROPERTIES
   {
-    Date=06-06-14;
-    Time=17:09:41;
-    Modified=Yes;
+    Date=;
+    Time=;
     Version List=Performance Profiler;
   }
   PROPERTIES
@@ -42,6 +41,61 @@ OBJECT Table 50000 Performance Profiler Events
   }
   CODE
   {
+    VAR
+      DeleteArchiveQst@1001 : TextConst 'ENU=Existing lines of the archived session %1 will be deleted. Do you want to continue?';
+      CopyedToArchMsg@1000 : TextConst 'ENU=Data is archived with Session Code %1.';
+
+    PROCEDURE CopyToArchive@1000(CurrSessionId@1001 : Integer);
+    VAR
+      ProfilerArchive@1002 : Record 50001;
+      ProfilerEvent@1003 : Record 50000;
+      ProfilerSessionArch@1004 : Record 50002;
+      SessionCode@1005 : Code[20];
+    BEGIN
+      IF FindSessionCode(SessionCode) THEN BEGIN
+        ProfilerEvent.RESET;
+        ProfilerEvent.SETRANGE("Session ID",CurrSessionId);
+        IF ProfilerEvent.FINDSET THEN BEGIN
+          REPEAT
+            ProfilerArchive.INIT;
+            ProfilerArchive.TRANSFERFIELDS(ProfilerEvent);
+            ProfilerArchive."Session Code" := SessionCode;
+            ProfilerArchive.INSERT;
+          UNTIL ProfilerEvent.NEXT = 0;
+          MESSAGE(CopyedToArchMsg,SessionCode);
+        END;
+      END;
+    END;
+
+    LOCAL PROCEDURE FindSessionCode@1001(VAR SessionCode@1000 : Code[20]) : Boolean;
+    VAR
+      ProfilerSessionArch@1002 : Record 50002;
+      PerfSessionArchived@1001 : Page 50002;
+    BEGIN
+      PerfSessionArchived.LOOKUPMODE(TRUE);
+      IF PerfSessionArchived.RUNMODAL = ACTION::LookupOK THEN BEGIN
+        PerfSessionArchived.GETRECORD(ProfilerSessionArch);
+        ProfilerSessionArch.TESTFIELD(Code);
+        SessionCode := ProfilerSessionArch.Code;
+
+        EXIT(RemoveExistingArchLines(SessionCode));
+      END;
+      EXIT(FALSE);
+    END;
+
+    LOCAL PROCEDURE RemoveExistingArchLines@1002(SessionCode@1000 : Code[20]) : Boolean;
+    VAR
+      ProfilerArchive@1001 : Record 50001;
+    BEGIN
+      ProfilerArchive.RESET;
+      ProfilerArchive.SETRANGE("Session Code",SessionCode);
+      IF NOT ProfilerArchive.ISEMPTY THEN BEGIN
+        IF NOT CONFIRM(DeleteArchiveQst,FALSE,SessionCode) THEN
+          EXIT(FALSE);
+        ProfilerArchive.DELETEALL;
+      END;
+      EXIT(TRUE);
+    END;
 
     BEGIN
     END.

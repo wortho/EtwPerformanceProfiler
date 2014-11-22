@@ -14,6 +14,7 @@ OBJECT Page 50000 Performance Profiler
     ModifyAllowed=Yes;
     SourceTable=Table50000;
     PageType=List;
+    PromotedActionCategoriesML=ENU=New,Process,Report,Archive;
     OnInit=BEGIN
              MaxStatementLength := 250;
              Threshold := 0;
@@ -165,6 +166,23 @@ OBJECT Page 50000 Performance Profiler
                                  MESSAGE(StatementTxt);
                                END;
                                 }
+      { 27      ;1   ;Action    ;
+                      Name=Copy To Archive;
+                      Promoted=Yes;
+                      PromotedIsBig=Yes;
+                      Image=CopyWorksheet;
+                      PromotedCategory=Category4;
+                      OnAction=BEGIN
+                                 CopyToArchive("Session ID");
+                               END;
+                                }
+      { 26      ;1   ;Action    ;
+                      Name=Archive;
+                      RunObject=Page 50001;
+                      Promoted=Yes;
+                      PromotedIsBig=Yes;
+                      Image=Archive;
+                      PromotedCategory=Category4 }
     }
   }
   CONTROLS
@@ -352,3 +370,4 @@ OBJECT Page 50000 Performance Profiler
     END.
   }
 }
+

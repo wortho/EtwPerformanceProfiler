@@ -1,0 +1,37 @@
+OBJECT Page 50002 Performance Session Archived
+{
+  OBJECT-PROPERTIES
+  {
+    Date=;
+    Time=;
+    Version List=Performance Profiler;
+  }
+  PROPERTIES
+  {
+    SourceTable=Table50002;
+    PageType=List;
+  }
+  CONTROLS
+  {
+    { 1000;0   ;Container ;
+                ContainerType=ContentArea }
+
+    { 1001;1   ;Group     ;
+                Name=Group;
+                GroupType=Repeater }
+
+    { 1002;2   ;Field     ;
+                SourceExpr=Code }
+
+    { 1003;2   ;Field     ;
+                SourceExpr=Description }
+
+  }
+  CODE
+  {
+
+    BEGIN
+    END.
+  }
+}
+

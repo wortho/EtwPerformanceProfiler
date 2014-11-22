@@ -41,5 +41,15 @@ namespace EtwPerformanceProfiler
         /// </summary>
         /// <returns>Maximum relative time stamp.</returns>
         double MaxRelativeTimeStamp();
+
+        /// <summary>
+        /// Suspend event processing.
+        /// </summary>
+        void Suspend();
+
+        /// <summary>
+        /// Resume event processing.
+        /// </summary>
+        void Resume();
     }
 }
