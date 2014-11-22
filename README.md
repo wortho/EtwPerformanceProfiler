@@ -4,6 +4,8 @@ Sample for profiling Microsoft Dynamics NAV Application code. Consumes NAV Execu
 
 The sample consists of C# code for listening to NAV Server ETW events and Application objects for storing the events in a Table and presenting the results in a Page.
 
+**Disclamer:** Use at own risk. No warranty or Guaranty. No support.
+
 Installing and Running
 =================================
 * Create a folder for the Profiler in the Client and Server Addins folder.
