@@ -15,7 +15,7 @@ OBJECT Table 50010 IndexUsageView
     { 1   ;   ;ObjectName          ;Text128        }
     { 2   ;   ;IndexName           ;Text128        }
     { 3   ;   ;IndexId             ;Integer        }
-    { 4   ;   ;UserSeek            ;BigInteger     }
+    { 4   ;   ;UserSeeks           ;BigInteger     }
     { 5   ;   ;UserScans           ;BigInteger     }
     { 6   ;   ;UserLookups         ;BigInteger     }
     { 7   ;   ;UserUpdates         ;BigInteger     }
