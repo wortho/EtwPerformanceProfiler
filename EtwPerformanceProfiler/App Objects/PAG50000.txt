@@ -285,7 +285,7 @@ OBJECT Page 50000 Performance Profiler
   {
     VAR
       ProgressDialog@1004 : Dialog;
-      PerformanceProfiler@1000 : DotNet "'EtwPerformanceProfiler, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.EtwPerformanceProfiler.EtwPerformanceProfiler";
+      PerformanceProfiler@1000 : DotNet "'EtwPerformanceProfiler, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null'.EtwPerformanceProfiler.EtwPerformanceProfiler";
       ProfilerStarted@1001 : Boolean INDATASET;
       TargetSessionIDEditable@1008 : Boolean;
       TargetSessionID@1003 : Integer INDATASET;

@@ -141,7 +141,7 @@ OBJECT Page 50001 Performance Profiler Archive
   {
     VAR
       ProgressDialog@1004 : Dialog;
-      PerformanceProfiler@1000 : DotNet "'EtwPerformanceProfiler, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.EtwPerformanceProfiler.EtwPerformanceProfiler";
+      PerformanceProfiler@1000 : DotNet "'EtwPerformanceProfiler, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null'.EtwPerformanceProfiler.EtwPerformanceProfiler";
       ProfilerStarted@1001 : Boolean INDATASET;
       I@1002 : Integer;
       TargetSessionCode@1003 : Code[20] INDATASET;
