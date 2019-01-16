@@ -129,7 +129,7 @@ namespace EtwPerformanceProfiler
         /// <summary>
         /// An event id for failed AL methods.
         /// </summary>
-        internal const int AFunctionFailed = 402;
+        internal const int ALFunctionFailed = 402;
 
         /// <summary>
         /// The event id for the AL Statement event.

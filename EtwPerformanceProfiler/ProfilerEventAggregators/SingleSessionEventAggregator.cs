@@ -148,8 +148,9 @@ namespace EtwPerformanceProfiler
             int statementIndex;
             EventType eventType;
             EventSubType eventSubType;
+            SqlEventType sqlEventType;
             string statement;
-            if (!GetStatementIndexAndEventType(traceEvent, out statementIndex, out statement, out eventType, out eventSubType))
+            if (!GetStatementIndexAndEventType(traceEvent, out statementIndex, out statement, out eventType, out eventSubType, out sqlEventType))
             {
                 return;
             }
@@ -157,7 +158,7 @@ namespace EtwPerformanceProfiler
             // We can check sessions id only here after we filtered out non Nav events.
             int sessionId = GetSessionId(traceEvent);
 
-            this.AddEtwEventToAggregatedCallTree(traceEvent, sessionId, statementIndex, statement, eventType, eventSubType);
+            this.AddEtwEventToAggregatedCallTree(traceEvent, sessionId, statementIndex, statement, eventType, eventSubType, sqlEventType);
         }
 
         /// <summary>
@@ -169,7 +170,7 @@ namespace EtwPerformanceProfiler
             return this.aggregatedCallTree.MaxRelativeTimeStampMSec;
         }
 
-        internal void AddEtwEventToAggregatedCallTree(TraceEvent traceEvent, int sessionId, int statementIndex, string statementName, EventType eventType, EventSubType eventSubType)
+        internal void AddEtwEventToAggregatedCallTree(TraceEvent traceEvent, int sessionId, int statementIndex, string statementName, EventType eventType, EventSubType eventSubType, SqlEventType sqlEventType)
         {
             if (sessionId != this.profilingSessionId)
             {
@@ -177,21 +178,22 @@ namespace EtwPerformanceProfiler
                 return;
             }
 
+            string objectType = string.Empty;
+            int objectId = 0;
+
             if (this.firstEvent)
             {
                 this.firstEvent = false;
-
                 this.aggregatedCallTree.StatementName += " User: " + GetUserName(traceEvent) + ";";
+                this.aggregatedCallTree.ObjectType = "System";
             }
 
-            string objectType = string.Empty;
-            int objectId = 0;
             if (eventSubType == EventSubType.AlEvent)
             {
                 // We don't have object type and id for the non AL events.
 
                 objectType = (string) traceEvent.PayloadValue(NavEventsPayloadIndexes.ObjectTypePayloadIndex);
-                objectId = (int) traceEvent.PayloadValue(NavEventsPayloadIndexes.ObjectIdPayloadIndex);
+                objectId = System.Convert.ToInt32(traceEvent.PayloadValue(NavEventsPayloadIndexes.ObjectIdPayloadIndex));
             }
 
             int lineNo = 0;
@@ -199,7 +201,7 @@ namespace EtwPerformanceProfiler
             {
                 // Only statements have line numbers.
 
-                lineNo = (int) traceEvent.PayloadValue(NavEventsPayloadIndexes.LineNoPayloadIndex);
+                lineNo = System.Convert.ToInt32(traceEvent.PayloadValue(NavEventsPayloadIndexes.LineNoPayloadIndex));
             }
 
             string statement;
@@ -226,6 +228,7 @@ namespace EtwPerformanceProfiler
                 SessionId = sessionId,
                 Type = eventType,
                 SubType = eventSubType,
+                SqlEventType = sqlEventType,
                 ObjectType = objectType,
                 ObjectId = objectId,
                 LineNo = lineNo,
@@ -319,6 +322,7 @@ namespace EtwPerformanceProfiler
                 {
                     SessionId = currentAggregatedEventNode.SessionId,
                     ObjectType = currentAggregatedEventNode.ObjectType,
+                    SqlEventType = currentAggregatedEventNode.SqlEventType,
                     ObjectId = currentAggregatedEventNode.ObjectId,
                     LineNo = currentAggregatedEventNode.LineNo,
                     Type = EventType.StartMethod,

@@ -75,11 +75,11 @@ namespace EtwPerformanceProfiler
         /// <summary>
         /// Gets call tree's current statements duration in miliseconds
         /// </summary>
-        public long CallTreeCurrentStatementDurationMs
+        public int CallTreeCurrentStatementDurationMs
         {
             get
             {
-                return (long)this.callTree.Current.DurationMSec;
+                return (int)this.callTree.Current.DurationMSec;
             }
         }
 
@@ -117,7 +117,18 @@ namespace EtwPerformanceProfiler
         }
 
         /// <summary>
-        /// Gets the call tree' current current statement's depth.
+        /// Gets the call tree' current  Sql event type.
+        /// </summary>
+        public int CallTreeCurrentSqlEventType
+        {
+            get
+            {
+                return (int)this.callTree.Current.SqlEventType;
+            }
+        }
+
+        /// <summary>
+        /// Gets the call tree' current statement's depth.
         /// </summary>
         public int CallTreeCurrentStatementIndentation
         {
@@ -171,6 +182,16 @@ namespace EtwPerformanceProfiler
                 if (0 == String.Compare(objectType, "Query", System.StringComparison.OrdinalIgnoreCase))
                 {
                     return 9;
+                }
+
+                if (0 == String.Compare(objectType, "System", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    return 10;
+                }
+
+                if (0 == String.Compare(objectType, "PageExtension", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    return 12;
                 }
 
                 throw new InvalidOperationException("Invalid object type.");

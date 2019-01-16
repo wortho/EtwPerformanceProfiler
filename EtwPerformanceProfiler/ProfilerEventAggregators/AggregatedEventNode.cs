@@ -25,12 +25,17 @@ namespace EtwPerformanceProfiler
         /// <summary>
         /// Gets or sets the type of the object.
         /// </summary>
-        public string ObjectType { get; private set; }
+        public string ObjectType { get; set; }
         /// <summary>
         /// Gets or sets the object id.
         /// </summary>
 
         public int ObjectId { get; private set; }
+
+        /// <summary>
+        /// Gets or sets the Sql event type
+        /// </summary>
+        internal SqlEventType SqlEventType { get; set; }
 
         /// <summary>
         /// Gets or sets the line no.
@@ -153,6 +158,7 @@ namespace EtwPerformanceProfiler
                 e.ObjectType == profilerEvent.ObjectType &&
                 e.ObjectId == profilerEvent.ObjectId &&
                 e.LineNo == profilerEvent.LineNo &&
+                e.SqlEventType == profilerEvent.SqlEventType &&
                 e.StatementName == profilerEvent.StatementName);
 
             if (res != null)
@@ -167,17 +173,18 @@ namespace EtwPerformanceProfiler
             }
 
             res = new AggregatedEventNode(this)
-                {
-                    SessionId = profilerEvent.SessionId,
-                    ObjectType = profilerEvent.ObjectType,
-                    ObjectId = profilerEvent.ObjectId,
-                    LineNo = profilerEvent.LineNo,
-                    StatementName = profilerEvent.StatementName,
-                    TimeStampRelativeMSec = profilerEvent.TimeStampRelativeMSec,
-                    OriginalType = profilerEvent.Type,
-                    EvaluatedType = profilerEvent.Type,
-                    SubType = profilerEvent.SubType,
-                };
+            {
+                SessionId = profilerEvent.SessionId,
+                ObjectType = profilerEvent.ObjectType,
+                ObjectId = profilerEvent.ObjectId,
+                SqlEventType = profilerEvent.SqlEventType,
+                LineNo = profilerEvent.LineNo,
+                StatementName = profilerEvent.StatementName,
+                TimeStampRelativeMSec = profilerEvent.TimeStampRelativeMSec,
+                OriginalType = profilerEvent.Type,
+                EvaluatedType = profilerEvent.Type,
+                SubType = profilerEvent.SubType,
+            };
 
             this.Children.Add(res);
 

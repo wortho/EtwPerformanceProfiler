@@ -47,28 +47,27 @@ namespace EtwPerformanceProfiler
         /// <summary>
         /// The index of the object type payload parameter as defined in the ETW manifest.
         /// </summary>
-        internal const int ObjectTypePayloadIndex = 3;
+        internal const int ObjectTypePayloadIndex = 2;
 
         /// <summary>
         /// The index of the object id payload parameter as defined in the ETW manifest.
         /// </summary>
-        internal const int ObjectIdPayloadIndex = 4;
+        internal const int ObjectIdPayloadIndex = 3;
 
         /// <summary>
         /// The index of the function name payload parameter as defined in the ETW manifest.
         /// </summary>
-        internal const int ALFunctionNamePayloadIndex = 5;
+        internal const int ALFunctionNamePayloadIndex = 6;
 
         /// <summary>
         /// The index of the line number payload parameter as defined in the ETW manifest.
         /// </summary>
-        internal const int LineNoPayloadIndex = 6;
+        internal const int LineNoPayloadIndex = 7;
 
         /// <summary>
         /// The index of the statement payload parameter as defined in the ETW manifest.
         /// </summary>
-        internal const int ALStatementPayloadIndex = 7;
+        internal const int ALStatementPayloadIndex = 8;
         #endregion
-
     }
 }

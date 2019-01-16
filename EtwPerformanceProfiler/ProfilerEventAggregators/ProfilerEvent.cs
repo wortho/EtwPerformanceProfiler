@@ -61,6 +61,67 @@ namespace EtwPerformanceProfiler
     }
 
     /// <summary>
+    /// Defines the various sql event types that are collected
+    /// </summary>
+    internal enum SqlEventType
+    {
+        /// <summary>
+        /// Not an event.
+        /// </summary>
+        None,
+
+        /// <summary>
+        /// Sql SqlExecuteScalar event.
+        /// </summary>
+        SqlExecuteScalar,
+
+        /// <summary>
+        /// Sql SqlExecuteNonQuer event.
+        /// </summary>
+        SqlExecuteNonQuery,
+
+        /// <summary>
+        /// Sql SqlExecuteReader event.
+        /// </summary>
+        SqlExecuteReader,
+
+        /// <summary>
+        /// Sql SqlReadNextResult event.
+        /// </summary>
+        SqlReadNextResult,
+
+        /// <summary>
+        /// Sql SqlReadNextRow event.
+        /// </summary>
+        SqlReadNextRow,
+
+        /// <summary>
+        /// Sql SqlBeginTransaction event.
+        /// </summary>
+        SqlBeginTransaction,
+
+        /// <summary>
+        /// Sql SqlPrepare event.
+        /// </summary>
+        SqlPrepare,
+
+        /// <summary>
+        /// Sql SqlOpenConnection event.
+        /// </summary>
+        SqlOpenConnection,
+
+        /// <summary>
+        /// Sql SqlCommit event.
+        /// </summary>
+        SqlCommit,
+
+        /// <summary>
+        /// Sql SqlRollback event.
+        /// </summary>
+        SqlRollback,
+    }
+
+    /// <summary>
     /// Defines the data structure for an ETW event issued by the NAV server
     /// </summary>
     internal struct ProfilerEvent
@@ -74,6 +135,11 @@ namespace EtwPerformanceProfiler
         /// Gets or sets the sub type.
         /// </summary>
         internal EventSubType SubType { get; set; }
+
+        /// <summary>
+        /// Gets or sets the Sql event type
+        /// </summary>
+        internal SqlEventType SqlEventType { get; set; }
 
         /// <summary>
         /// Gets or sets the session id.
@@ -139,8 +205,9 @@ namespace EtwPerformanceProfiler
                    && this.SessionId.Equals(other.SessionId)
                    && this.ObjectType.Equals(other.ObjectType)
                    && this.ObjectId.Equals(other.ObjectId) && this.LineNo.Equals(other.LineNo)
-                   && this.StatementName.Equals(other.StatementName) &&
-                   this.TimeStampRelativeMSec.Equals(other.TimeStampRelativeMSec);
+                   && this.StatementName.Equals(other.StatementName)
+                   && this.SqlEventType.Equals(other.SqlEventType) 
+                   && this.TimeStampRelativeMSec.Equals(other.TimeStampRelativeMSec);
         }
 
         /// <summary>
@@ -172,7 +239,7 @@ namespace EtwPerformanceProfiler
         public override int GetHashCode()
         {
             return this.Type.GetHashCode() ^ this.SessionId.GetHashCode() ^ this.ObjectId.GetHashCode() ^ this.ObjectType.GetHashCode()
-                   ^ this.StatementName.GetHashCode() ^ this.LineNo.GetHashCode() ^ this.TimeStampRelativeMSec.GetHashCode();
+                   ^ this.StatementName.GetHashCode() ^ this.LineNo.GetHashCode() ^ this.SqlEventType.GetHashCode() ^ this.TimeStampRelativeMSec.GetHashCode();
         }
     }
 }
