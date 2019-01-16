@@ -173,6 +173,16 @@ namespace EtwPerformanceProfiler
                     return 9;
                 }
 
+                if (0 == String.Compare(objectType, "System", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    return 10;
+                }
+
+                if (0 == String.Compare(objectType, "PageExtension", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    return 12;
+                }
+
                 throw new InvalidOperationException("Invalid object type.");
             }
         }

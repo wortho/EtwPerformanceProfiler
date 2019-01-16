@@ -181,7 +181,6 @@ namespace EtwPerformanceProfiler
             {
                 this.firstEvent = false;
 
-                this.aggregatedCallTree.StatementName += " User: " + GetUserName(traceEvent) + ";";
             }
 
             string objectType = string.Empty;
@@ -198,8 +197,7 @@ namespace EtwPerformanceProfiler
             if ((int) traceEvent.ID == NavEvents.ALFunctionStatement)
             {
                 // Only statements have line numbers.
-
-                lineNo = (int) traceEvent.PayloadValue(NavEventsPayloadIndexes.LineNoPayloadIndex);
+                lineNo = System.Convert.ToInt32(traceEvent.PayloadValue(NavEventsPayloadIndexes.LineNoPayloadIndex));
             }
 
             string statement;

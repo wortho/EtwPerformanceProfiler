@@ -12,11 +12,7 @@ namespace EtwPerformanceProfiler
 {
     abstract class EventAggregator
     {
-        protected static string GetUserName(TraceEvent traceEvent)
-        {
-            return (string)traceEvent.PayloadValue(NavEventsPayloadIndexes.UserNamePayloadIndex);
-        }
-
+     
         protected static int GetSessionId(TraceEvent traceEvent)
         {
             return (int)traceEvent.PayloadValue(NavEventsPayloadIndexes.SessionIdPayloadIndex);
