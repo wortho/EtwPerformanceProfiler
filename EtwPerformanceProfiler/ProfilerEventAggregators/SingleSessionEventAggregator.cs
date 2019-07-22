@@ -45,20 +45,10 @@ namespace EtwPerformanceProfiler
         /// <summary>
         /// Previous profiler event which was processed.
         /// </summary>
-        ProfilerEvent? previousProfilerEvent;
-
+        private ProfilerEvent? previousProfilerEvent;
+        
         private TraceEvent previousTraceEvent;
-
-        //TODO: Move to separate class
-        /// <summary>
-        /// The key is the string and the value is exactly the same string.
-        /// The idea is that for the equal strings we will use exactly the same string object.
-        /// It saves memory because event list contains a lot of identical strings. 
-        /// </summary>
-        private readonly Dictionary<string, string> statementCache;
-
-        private bool firstEvent;
-
+        
         /// <summary>
         /// <c>true</c> if event processing is suspended.
         /// </summary>
@@ -76,8 +66,6 @@ namespace EtwPerformanceProfiler
             this.profilingSessionId = sessionId;
 
             this.threshold = threshold;
-
-            this.statementCache = new Dictionary<string, string>();
         }
 
         /// <summary>
@@ -96,7 +84,6 @@ namespace EtwPerformanceProfiler
 
             this.previousProfilerEvent = null;
 
-            this.firstEvent = true;
         }
 
         /// <summary>
@@ -145,19 +132,26 @@ namespace EtwPerformanceProfiler
                 return;
             }
 
-            int statementIndex;
-            EventType eventType;
-            EventSubType eventSubType;
-            string statement;
-            if (!GetStatementIndexAndEventType(traceEvent, out statementIndex, out statement, out eventType, out eventSubType))
+            if (!TraceEventToCollect(traceEvent))
             {
                 return;
             }
 
-            // We can check sessions id only here after we filtered out non Nav events.
-            int sessionId = GetSessionId(traceEvent);
+            ProfilerEvent? currentProfilerEvent = GetProfilerEvent(traceEvent);
 
-            this.AddEtwEventToAggregatedCallTree(traceEvent, sessionId, statementIndex, statement, eventType, eventSubType);
+            if (currentProfilerEvent == null || 
+                currentProfilerEvent.Value.SessionId != this.profilingSessionId)
+            {
+                return;
+            }
+
+            if (AddProfilerEventToAggregatedCallTree(this.previousProfilerEvent, currentProfilerEvent, ref this.currentAggregatedEventNode))
+            {
+                this.previousProfilerEvent = currentProfilerEvent;
+            }
+
+            this.previousTraceEvent = traceEvent;
+
         }
 
         /// <summary>
@@ -169,96 +163,7 @@ namespace EtwPerformanceProfiler
             return this.aggregatedCallTree.MaxRelativeTimeStampMSec;
         }
 
-        internal void AddEtwEventToAggregatedCallTree(TraceEvent traceEvent, int sessionId, int statementIndex, string statementName, EventType eventType, EventSubType eventSubType)
-        {
-            if (sessionId != this.profilingSessionId)
-            {
-                // we are interested only in events for the profiling session
-                return;
-            }
-
-            if (this.firstEvent)
-            {
-                this.firstEvent = false;
-
-            }
-
-            string objectType = string.Empty;
-            int objectId = 0;
-            if (eventSubType == EventSubType.AlEvent)
-            {
-                // We don't have object type and id for the non AL events.
-
-                objectType = (string) traceEvent.PayloadValue(NavEventsPayloadIndexes.ObjectTypePayloadIndex);
-                objectId = (int) traceEvent.PayloadValue(NavEventsPayloadIndexes.ObjectIdPayloadIndex);
-            }
-
-            int lineNo = 0;
-            if ((int) traceEvent.ID == NavEvents.ALFunctionStatement)
-            {
-                // Only statements have line numbers.
-                lineNo = System.Convert.ToInt32(traceEvent.PayloadValue(NavEventsPayloadIndexes.LineNoPayloadIndex));
-            }
-
-            string statement;
-            if (statementIndex == NavEventsPayloadIndexes.NonPayloadIndex)
-            {
-                statement = statementName;
-            }
-            else
-            {
-                if (!string.IsNullOrEmpty(statementName))
-                {
-                    statement = statementName + (string)traceEvent.PayloadValue(statementIndex);
-                }
-                else
-                {
-                    statement = (string)traceEvent.PayloadValue(statementIndex);
-                }
-            }
-
-            statement = this.GetStatementFromTheCache(statement);
-
-            ProfilerEvent? currentProfilerEvent = new ProfilerEvent
-            {
-                SessionId = sessionId,
-                Type = eventType,
-                SubType = eventSubType,
-                ObjectType = objectType,
-                ObjectId = objectId,
-                LineNo = lineNo,
-                StatementName = statement,
-                TimeStampRelativeMSec = traceEvent.TimeStampRelativeMSec
-            };
-
-            if (AddProfilerEventToAggregatedCallTree(this.previousProfilerEvent, currentProfilerEvent, ref this.currentAggregatedEventNode))
-            {
-                this.previousProfilerEvent = currentProfilerEvent;
-            }
-
-            this.previousTraceEvent = traceEvent;
-        }
-
-        /// <summary>
-        /// For the equal strings function returns exactly the same string object with the value equal to the parameter.
-        /// It saves memory because event list contains a lot of identical strings. 
-        /// </summary>
-        /// <param name="statement">The key value.</param>
-        /// <returns>The cached string value.</returns>
-        internal string GetStatementFromTheCache(string statement)
-        {
-            string cachedStatement;
-
-            if (this.statementCache.TryGetValue(statement, out cachedStatement))
-            {
-                return cachedStatement;
-            }
-
-            this.statementCache[statement] = statement;
-
-            return statement;
-        }
-
+        
         /// <summary>
         /// Processes aggregated event. This method calls either <see cref="AggregatedEventNode.PushEventIntoCallStack"/> or 
         /// <see cref="AggregatedEventNode.PopEventFromCallStackAndCalculateDuration"/> on the <see cref="currentAggregatedEventNode"/>.

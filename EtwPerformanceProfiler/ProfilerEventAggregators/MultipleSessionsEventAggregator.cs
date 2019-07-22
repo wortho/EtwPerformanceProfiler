@@ -52,16 +52,11 @@ namespace EtwPerformanceProfiler
                 return;
             }
 
-            int statementIndex;
-            EventType eventType;
-            EventSubType eventSubType;
-            string statement;
-            if (!GetStatementIndexAndEventType(traceEvent, out statementIndex, out statement, out eventType, out eventSubType))
+            if (!TraceEventToCollect(traceEvent))
             {
                 return;
             }
 
-            // We can check sessions id only here after we filtered out non Nav events.
             int sessionId = GetSessionId(traceEvent);
 
             SingleSessionEventAggregator sessionAggregator;
@@ -72,7 +67,7 @@ namespace EtwPerformanceProfiler
                 this.sessionAggregators[sessionId] = sessionAggregator;
             }
 
-            sessionAggregator.AddEtwEventToAggregatedCallTree(traceEvent, sessionId, statementIndex, statement, eventType, eventSubType);
+            sessionAggregator.AddEtwEventToAggregatedCallTree(traceEvent);
         }
 
         /// <summary>

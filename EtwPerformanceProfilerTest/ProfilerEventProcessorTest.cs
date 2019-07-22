@@ -1188,15 +1188,15 @@ namespace EtwPerformanceProfilerTest
         [TestMethod]
         public void GetStatementFromTheCacheTest()
         {
-            var profilerEventProcessor = new SingleSessionEventAggregator(0);
+            var profilerEventAggregator = new EventAggregator();
 
             const string Statement = "statement";
-            profilerEventProcessor.GetStatementFromTheCache(Statement);
+            profilerEventAggregator.GetStatementFromTheCache(Statement);
 
             for (int i = 0; i < 10; ++i)
             {
                 string newStatement = new string(new [] {'s', 't', 'a', 't', 'e', 'm', 'e', 'n', 't'});
-                string cahcedStatement = profilerEventProcessor.GetStatementFromTheCache(newStatement);
+                string cahcedStatement = profilerEventAggregator.GetStatementFromTheCache(newStatement);
 
                 Assert.IsTrue(object.ReferenceEquals(Statement, cahcedStatement));
             }
