@@ -7,137 +7,215 @@
 //--------------------------------------------------------------------------
 
 using Microsoft.Diagnostics.Tracing;
+using System.Collections.Generic;
 
 namespace EtwPerformanceProfiler
 {
-    abstract class EventAggregator
+    internal class EventAggregator
     {
-     
-        protected static int GetSessionId(TraceEvent traceEvent)
+        /// <summary>
+        /// The key is the string and the value is exactly the same string.
+        /// The idea is that for the equal strings we will use exactly the same string object.
+        /// It saves memory because event list contains a lot of identical strings. 
+        /// </summary>
+        private readonly Dictionary<string, string> statementCache;
+
+        /// <summary>
+        /// Creates a new instance of the <see cref="EventAggregator"/> class.
+        /// </summary>
+        internal EventAggregator()
         {
-            return (int)traceEvent.PayloadValue(NavEventsPayloadIndexes.SessionIdPayloadIndex);
+            this.statementCache = new Dictionary<string, string>();
         }
 
-        protected static bool GetStatementIndexAndEventType(
-            TraceEvent traceEvent,
-            out int statementIndex,
-            out string statement,
-            out EventType eventType,
-            out EventSubType eventSubType)
+        /// <summary>
+        /// For the equal strings function returns exactly the same string object with the value equal to the parameter.
+        /// It saves memory because event list contains a lot of identical strings. 
+        /// </summary>
+        /// <param name="statement">The key value.</param>
+        /// <returns>The cached string value.</returns>
+        internal string GetStatementFromTheCache(string statement)
         {
-            statement = null;
+            string cachedStatement;
+
+            if (this.statementCache.TryGetValue(statement, out cachedStatement))
+            {
+                return cachedStatement;
+            }
+
+            this.statementCache[statement] = statement;
+
+            return statement;
+        }
+
+        protected static bool TraceEventToCollect(TraceEvent traceEvent)
+        {
+            switch ((int)traceEvent.ID)
+            {
+                case NavEvents.ALFunctionStart:
+                case NavEvents.ALFunctionStop:
+                case NavEvents.ALFunctionStatement:
+                case NavEvents.SqlExecuteScalarStart:
+                case NavEvents.SqlExecuteScalarStop:
+                case NavEvents.SqlExecuteNonQueryStart:
+                case NavEvents.SqlExecuteNonQueryStop:
+                case NavEvents.SqlExecuteReaderStart:
+                case NavEvents.SqlExecuteReaderStop:
+                case NavEvents.SqlReadNextResultStart:
+                case NavEvents.SqlReadNextResultStop:
+                case NavEvents.SqlReadNextRowStart:
+                case NavEvents.SqlReadNextRowStop:
+                case NavEvents.SqlCommitStart:
+                case NavEvents.SqlCommitStop:
+                case NavEvents.CreateServiceSessionStart:
+                case NavEvents.CreateServiceSessionStop:
+                case NavEvents.EndServiceSessionStart:
+                case NavEvents.EndServiceSessionStop:
+                    return true;
+                default:
+                    return false;
+            }
+
+        }
+
+        protected int GetSessionId(TraceEvent traceEvent)
+        {
+            int sessionId = (int)traceEvent.PayloadByName("sessionId");
+            return sessionId;
+        }
+
+        protected ProfilerEvent? GetProfilerEvent(TraceEvent traceEvent)
+        {
+            string statement = "";
+            EventType eventType = EventType.None;
+            EventSubType eventSubType = EventSubType.None;
+            string objectType = string.Empty;
+            int objectId = 0;
+            int lineNo = 0;
+
+            int sessionId = GetSessionId(traceEvent);
 
             switch ((int)traceEvent.ID)
             {
                 case NavEvents.ALFunctionStart:
-                    statementIndex = NavEventsPayloadIndexes.ALFunctionNamePayloadIndex;
+                    statement = (string)traceEvent.PayloadByName("functionName");
+                    objectType = (string)traceEvent.PayloadByName("objectType");
+                    objectId = (int)traceEvent.PayloadByName("objectId");
                     eventType = EventType.StartMethod;
                     eventSubType = EventSubType.AlEvent;
                     break;
                 case NavEvents.ALFunctionStop:
-                    statementIndex = NavEventsPayloadIndexes.ALFunctionNamePayloadIndex;
+                    statement = (string)traceEvent.PayloadByName("functionName");
+                    objectType = (string)traceEvent.PayloadByName("objectType");
+                    objectId = (int)traceEvent.PayloadByName("objectId");
                     eventType = EventType.StopMethod;
                     eventSubType = EventSubType.AlEvent;
                     break;
                 case NavEvents.ALFunctionStatement:
-                    statementIndex = NavEventsPayloadIndexes.ALStatementPayloadIndex;
+                    statement = (string)traceEvent.PayloadByName("statement");
+                    objectType = (string)traceEvent.PayloadByName("objectType");
+                    objectId = (int)traceEvent.PayloadByName("objectId");
+                    lineNo = (int)traceEvent.PayloadByName("lineNumber");
                     eventType = EventType.Statement;
                     eventSubType = EventSubType.AlEvent;
                     break;
                 case NavEvents.SqlExecuteScalarStart:
-                    statementIndex = NavEventsPayloadIndexes.SqlStatementPayloadIndex;
+                    statement = (string)traceEvent.PayloadByName("sqlStatement");
                     eventType = EventType.StartMethod;
                     eventSubType = EventSubType.SqlEvent;
                     break;
                 case NavEvents.SqlExecuteScalarStop:
-                    statementIndex = NavEventsPayloadIndexes.SqlStatementPayloadIndex;
+                    statement = (string)traceEvent.PayloadByName("sqlStatement");
                     eventType = EventType.StopMethod;
                     eventSubType = EventSubType.SqlEvent;
                     break;
                 case NavEvents.SqlExecuteNonQueryStart:
-                    statementIndex = NavEventsPayloadIndexes.SqlStatementPayloadIndex;
+                    statement = (string)traceEvent.PayloadByName("sqlStatement");
                     eventType = EventType.StartMethod;
                     eventSubType = EventSubType.SqlEvent;
                     break;
                 case NavEvents.SqlExecuteNonQueryStop:
-                    statementIndex = NavEventsPayloadIndexes.SqlStatementPayloadIndex;
+                    statement = (string)traceEvent.PayloadByName("sqlStatement");
                     eventType = EventType.StopMethod;
                     eventSubType = EventSubType.SqlEvent;
                     break;
                 case NavEvents.SqlExecuteReaderStart:
-                    statementIndex = NavEventsPayloadIndexes.SqlStatementPayloadIndex;
+                    statement = (string)traceEvent.PayloadByName("sqlStatement");
                     eventType = EventType.StartMethod;
                     eventSubType = EventSubType.SqlEvent;
                     break;
                 case NavEvents.SqlExecuteReaderStop:
-                    statementIndex = NavEventsPayloadIndexes.SqlStatementPayloadIndex;
+                    statement = (string)traceEvent.PayloadByName("sqlStatement");
                     eventType = EventType.StopMethod;
                     eventSubType = EventSubType.SqlEvent;
                     break;
                 case NavEvents.SqlReadNextResultStart:
-                    statementIndex = NavEventsPayloadIndexes.SqlStatementPayloadIndex;
+                    statement = (string)traceEvent.PayloadByName("sqlStatement");
                     eventType = EventType.StartMethod;
                     eventSubType = EventSubType.SqlEvent;
                     break;
                 case NavEvents.SqlReadNextResultStop:
-                    statementIndex = NavEventsPayloadIndexes.SqlStatementPayloadIndex;
+                    statement = (string)traceEvent.PayloadByName("sqlStatement");
                     eventType = EventType.StopMethod;
                     eventSubType = EventSubType.SqlEvent;
                     break;
                 case NavEvents.SqlReadNextRowStart:
-                    statementIndex = NavEventsPayloadIndexes.SqlStatementPayloadIndex;
+                    statement = (string)traceEvent.PayloadByName("sqlStatement");
                     eventType = EventType.StartMethod;
                     eventSubType = EventSubType.SqlEvent;
                     break;
                 case NavEvents.SqlReadNextRowStop:
-                    statementIndex = NavEventsPayloadIndexes.SqlStatementPayloadIndex;
+                    statement = (string)traceEvent.PayloadByName("sqlStatement");
                     eventType = EventType.StopMethod;
                     eventSubType = EventSubType.SqlEvent;
                     break;
                 case NavEvents.SqlCommitStart:
                     statement = "SQL COMMIT";
-                    statementIndex = NavEventsPayloadIndexes.NonPayloadIndex;
                     eventType = EventType.StartMethod;
                     eventSubType = EventSubType.SqlEvent;
                     break;
                 case NavEvents.SqlCommitStop:
                     statement = "SQL COMMIT";
-                    statementIndex = NavEventsPayloadIndexes.NonPayloadIndex;
                     eventType = EventType.StopMethod;
                     eventSubType = EventSubType.SqlEvent;
                     break;
                 case NavEvents.CreateServiceSessionStart:
-                    statement = "Open Session: ";
-                    statementIndex = NavEventsPayloadIndexes.ConnectionTypePayloadIndex;
+                    statement = "Open Session: " + (string)traceEvent.PayloadByName("connectionType");
                     eventType = EventType.StartMethod;
                     eventSubType = EventSubType.SystemEvent;
                     break;
                 case NavEvents.CreateServiceSessionStop:
-                    statement = "Open Session: ";
-                    statementIndex = NavEventsPayloadIndexes.ConnectionTypePayloadIndex;
+                    statement = "Open Session: " + (string)traceEvent.PayloadByName("connectionType"); ;
                     eventType = EventType.StopMethod;
                     eventSubType = EventSubType.SystemEvent;
                     break;
                 case NavEvents.EndServiceSessionStart:
-                    statement = "Close Session: ";
-                    statementIndex = NavEventsPayloadIndexes.ConnectionTypePayloadIndex;
+                    statement = "Close Session: " + (string)traceEvent.PayloadByName("connectionType"); ;
                     eventType = EventType.StartMethod;
                     eventSubType = EventSubType.SystemEvent;
                     break;
                 case NavEvents.EndServiceSessionStop:
-                    statement = "Close Session: ";
-                    statementIndex = NavEventsPayloadIndexes.ConnectionTypePayloadIndex;
+                    statement = "Close Session: " + (string)traceEvent.PayloadByName("connectionType"); ;
                     eventType = EventType.StopMethod;
                     eventSubType = EventSubType.SystemEvent;
                     break;
                 default:
-                    statementIndex = -1;
-                    eventType = EventType.None;
-                    eventSubType = EventSubType.None;
-                    return false;
+                    return null;
             }
 
-            return true;
+            return new ProfilerEvent
+            {
+                SessionId = sessionId,
+                Type = eventType,
+                SubType = eventSubType,
+                ObjectType = objectType,
+                ObjectId = objectId,
+                LineNo = lineNo,
+                StatementName = GetStatementFromTheCache(statement),
+                TimeStampRelativeMSec = traceEvent.TimeStampRelativeMSec
+            };
+
         }
+
     }
 }

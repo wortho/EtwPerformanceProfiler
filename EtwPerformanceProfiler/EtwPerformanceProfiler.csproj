@@ -55,7 +55,6 @@
     <Compile Include="EtwEventProcessors\EtwEventDynamicProcessor.cs" />
     <Compile Include="EtwPerformanceProfiler.cs" />
     <Compile Include="EtwEventProcessors\NavEvents.cs" />
-    <Compile Include="EtwEventProcessors\NavEventsPayloadIndexes.cs" />
     <Compile Include="ProfilerEventAggregators\ProfilerEvent.cs" />
     <Compile Include="ProfilerEventAggregators\SingleSessionEventAggregator.cs" />
     <Compile Include="ProfilerEventProcessors\ProfilerEventDynamicProcessor.cs" />
