@@ -187,4 +187,6 @@ FakesAssemblies/
 GeneratedArtifacts/
 _Pvt_Extensions/
 ModelManifest.xml
-/.vs/EtwPerformanceProfiler/v15/Server/sqlite3
+
+# Visual Studio cache/options directory
+.vs/
