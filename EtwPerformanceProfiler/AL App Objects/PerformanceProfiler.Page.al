@@ -365,7 +365,6 @@ page 50145 "Performance Profiler"
     [Scope('Internal')]
     procedure SetTargetSessionID(NewTargetSessionID: Integer)
     begin
-        // SO
         TargetSessionID := NewTargetSessionID;
     end;
 }
