@@ -86,8 +86,8 @@ OBJECT Page 50000 Performance Profiler
                       Image=Stop;
                       PromotedCategory=Process;
                       OnAction=BEGIN
-                                 WaitForDataToBeCollected;
                                  PerformanceProfiler.Stop;
+                                 WaitForDataToBeCollected;
 
                                  ProfilerStarted := FALSE;
 
