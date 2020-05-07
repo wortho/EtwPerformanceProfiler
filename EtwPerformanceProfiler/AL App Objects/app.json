@@ -1,0 +1,26 @@
+{
+  "id": "4e6bd02f-26c3-4019-9d3e-936b2254bd6f",
+  "name": "ETW Performance Profiler",
+  "publisher": "Default Publisher",
+  "version": "1.0.0.0",
+  "brief": "",
+  "description": "Tool for profiling Dynamics NAV/BC Application code. Consumes NAV Execution Events from ETW. To begin, open Session List via debugger, choose session and open Performance Profiler.",
+  "privacyStatement": "",
+  "EULA": "",
+  "help": "",
+  "url": "https://github.com/wortho/EtwPerformanceProfiler",
+  "logo": "",
+  "dependencies": [],
+  "screenshots": [],
+  "platform": "14.0.0.0",
+  "application": "14.0.0.0",
+  "idRanges": [
+    {
+      "from": 50145,
+      "to": 50149
+    }
+  ],
+  "target": "Internal",
+  "showMyCode": true,
+  "runtime": "3.0"
+}
