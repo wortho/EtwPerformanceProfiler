@@ -178,9 +178,14 @@ namespace EtwPerformanceProfiler
                     return 10;
                 }
 
-                if (0 == String.Compare(objectType, "PageExtension", System.StringComparison.OrdinalIgnoreCase))
+                if (0 == String.Compare(objectType, "TableExtension", System.StringComparison.OrdinalIgnoreCase))
                 {
                     return 12;
+                }
+
+                if (0 == String.Compare(objectType, "PageExtension", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    return 13;
                 }
 
                 throw new InvalidOperationException("Invalid object type.");
